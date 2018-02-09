@@ -36,6 +36,38 @@ function constructScanParams(tableName, filter) {
     }
 }
 
+function appendExpression(map, prev, update) {
+    var docClient = new aws.DynamoDB.DocumentClient();
+    var expression = "";
+    for (var key in update) {
+        if (typeof(update[key]) === 'object' && update[key].constructor != Array) {
+            var next = appendExpression(map, prev + key + ".", update[key]);
+            expression = expression + next.expression;
+        } else {
+            var identifier = ":" + prev.toLowerCase().replace(/\./g, "") + key.toLowerCase();
+            expression = expression + prev + key + " " + identifier + ", ";
+            if (typeof(update[key] === 'object')) {
+                map[identifier] = docClient.createSet(update[key]);
+            } else {
+                map[identifier] = update[key];
+            }
+        }
+    }
+    return {
+        map: map,
+        expression: expression
+    };
+}
+
+function createAddExpression(update) {
+    var appendResult = appendExpression({}, "", update); //Serialize the update object
+    var expression = "add " + appendResult.expression.substr(0, appendResult.expression.length - 2); //Add command and remove extra comma
+    return {
+        expressionMap: appendResult.map,
+        expression: expression
+    }
+}
+
 class Database {
     constructor() {
         this.client = connectToDatabase();
@@ -91,6 +123,31 @@ class Database {
             callback(error);
         });
     }
+
+    UpdateItem(tableName, key, update, cb) {
+        var docClient = new aws.DynamoDB.DocumentClient();
+
+        var updateExpression = createAddExpression(update);
+        var params = {
+            TableName: tableName,
+            Key: key,
+            UpdateExpression: updateExpression.expression,
+            ExpressionAttributeValues: updateExpression.expressionMap,
+        };
+
+        docClient.update(params, function(err, data) {
+            cb(err);
+        });
+    }
 }
 
-module.exports = Database;
+
+var instance;
+function GetInstance() {
+    if (!instance) {
+        instance = new Database();
+    }
+    return instance;
+}
+
+module.exports.GetInstance = GetInstance;

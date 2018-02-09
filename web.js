@@ -3,7 +3,9 @@
 const http = require("http");
 const Express = require("express");
 const bp = require("body-parser");
-const ChatBot = require("./ChatBot/WatsonConversation")
+const ChatBot = require("./ChatBot/WatsonConversation");
+const TextAnalyzer = require("./Analysis/WatsonTextAnalyzer");
+const Database = require("./Database/database.js");
 
 //Setup express layer
 const express = new Express();
@@ -13,6 +15,8 @@ express.use(bp.json({type: 'application/json'}));
 var server = http.createServer(express);
 
 const chatbot = new ChatBot();
+
+const database = Database.GetInstance();
 
 /**
     "Request" : {
@@ -46,22 +50,22 @@ express.post('/match', (req, res) => {
 
 /*** 
     "Request" : {
-        "session_id" : "CONVERSATION_ID_STRING",
+        "session_token" : "CONVERSATION_ID_STRING",
         "input" : "USER_INPUT_STRING"
     }
 
     "Response" : {
-        "session_id" : "CONVERSATION_ID_STRING",
+        "session_token" : "CONVERSATION_ID_STRING",
         "response" : "CHATBOT_RESPONSE"
     }
  */
 express.post('/conversation', (req, res) => {
-    var sessionId = req.body.session_id;
+    var sessionToken = req.body.session_token;
     var input = req.body.input;
 
     //Determine whether the request is malformed
-    if (typeof(sessionId) != 'undefined' && typeof(input) != 'undefined') {
-        chatbot.sendMessage(sessionId, input, function(err, data) {
+    if (typeof(sessionToken) != 'undefined' && typeof(input) != 'undefined') {
+        chatbot.sendMessage(sessionToken, input, function(err, chatbotData) {
             //Determine whether there was an internal error
             if (err) {
                 console.log(err);
@@ -69,9 +73,34 @@ express.post('/conversation', (req, res) => {
             } else {
                 //Respond with conversation data
                 res.send(JSON.stringify({
-                    session_id : data.sessionId, //Session ID used to maintain state
-	                response : data.text //The chatbot response
+                    session_token : chatbotData.sessionToken, //Session ID used to maintain state
+	                response : chatbotData.text //The chatbot response
                 }));
+
+                //Analyze the user input
+                var analyzer = new TextAnalyzer(input);
+                var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
+                //Perform the analysis
+                analyzer.Analyze(function(err) {
+                    //Check for analysis error
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        //Store the concepts that were found
+                        var concepts = conceptExtractor.GetConcepts();
+                        console.log("Concepts Detected: " + concepts);
+                        //Determine whether any concepts were found
+                        if (concepts.length > 0) {
+                            //Associate these concepts with this user session
+                            database.tables.sessions.AddConcepts(chatbotData.sessionId, concepts, function(error) {
+                                //Log any errors
+                                if (error) {
+                                    console.log(error);
+                                }
+                            });
+                        }
+                    }
+                });
             }
         });
     } else {

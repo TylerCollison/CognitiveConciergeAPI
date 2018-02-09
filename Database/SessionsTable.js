@@ -1,5 +1,4 @@
 const TABLE_NAME = "CognitiveConciergeSessions";
-const PRIMARY_KEY_NAME = "SessionID"
 
 class SessionsTable {
     constructor(database) {
@@ -18,6 +17,16 @@ class SessionsTable {
 
     PutItem(item, callback) {
         this.client.PutItem(TABLE_NAME, item, callback);
+    }
+
+    UpdateItem(primaryKeyValue, update, callback) {
+        this.client.UpdateItem(TABLE_NAME, {
+            SessionID: primaryKeyValue
+        }, update, callback);
+    }
+
+    AddConcepts(sessionId, concepts, callback) {
+        this.UpdateItem(sessionId, { Concepts: concepts }, callback);
     }
 }
 

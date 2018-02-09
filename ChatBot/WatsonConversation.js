@@ -42,8 +42,9 @@ class ChatBot {
         }, function(error, response) {
             //Call callback with response data
             var data = {
-                sessionId: cryptoEngine.encrypt(JSON.stringify(response.context), PASSWORD), //Create session ID from response context
-                text: response.output.text[0] //Return the most recent chatbot response
+                sessionToken: cryptoEngine.encrypt(JSON.stringify(response.context), PASSWORD), //Create session ID from response context
+                text: response.output.text[0], //Return the most recent chatbot response
+                sessionId: response.context.conversation_id
             }
             cb(error, data);
         });
