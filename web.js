@@ -14,8 +14,10 @@ express.use(bp.json({type: 'application/json'}));
 //Setup HTTP server
 var server = http.createServer(express);
 
+//Create a new chatbot
 const chatbot = new ChatBot();
 
+//Get the database singleton
 const database = Database.GetInstance();
 
 /**
