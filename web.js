@@ -43,19 +43,24 @@ express.post('/match', (req, res) => {
 
     //Determine whether the request is malformed
     if (typeof(sessionId) != 'undefined') {
+        //Search the database for the supplied session information
         database.tables.sessions.GetItem(sessionId, function(err, data) {
+            //Determine whether there was an internal error
             if (err) {
                 console.log(err);
             } else {
-                var explorer = new LocationExplorer();
+                var explorer = new LocationExplorer(); //Create a new location explorer
+                //Determine whether there are any concepts associated with the session
                 if (data.Concepts) {
                     //TODO: remove the Concept Set at the database level
-                    explorer.AddSearchConcepts(data.Concepts.values);
+                    explorer.AddSearchConcepts(data.Concepts.values); //Add the concepts 
                 }
+                //Search for locations based on the supplied parameters
                 explorer.Search(function(err, data) {
                     if (err) {
                         console.log(err);
                     } else {
+                        //Respond with the matching location data
                         res.send(JSON.stringify({
                             match_count: data.length, 
                             matches: data
