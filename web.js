@@ -5,7 +5,8 @@ const Express = require("express");
 const bp = require("body-parser");
 const ChatBot = require("./ChatBot/WatsonConversation");
 const TextAnalyzer = require("./Analysis/WatsonTextAnalyzer");
-const Database = require("./Database/database.js");
+const Database = require("./Database/database");
+const LocationExplorer = require("./KnowledgeSystem/LocationExplorer");
 
 //Setup express layer
 const express = new Express();
@@ -42,7 +43,32 @@ express.post('/match', (req, res) => {
 
     //Determine whether the request is malformed
     if (typeof(sessionId) != 'undefined') {
-        res.send("TODO: finish this route");
+        //Search the database for the supplied session information
+        database.tables.sessions.GetItem(sessionId, function(err, data) {
+            //Determine whether there was an internal error
+            if (err) {
+                console.log(err);
+            } else {
+                var explorer = new LocationExplorer(); //Create a new location explorer
+                //Determine whether there are any concepts associated with the session
+                if (data.Concepts) {
+                    //TODO: remove the Concept Set at the database level
+                    explorer.AddSearchConcepts(data.Concepts.values); //Add the concepts 
+                }
+                //Search for locations based on the supplied parameters
+                explorer.Search(function(err, data) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        //Respond with the matching location data
+                        res.send(JSON.stringify({
+                            match_count: data.length, 
+                            matches: data
+                        }));
+                    }
+                });
+            }
+        });
     } else {
         //Throw an error if the request was malformed
         console.log("Malformed request");
@@ -57,6 +83,7 @@ express.post('/match', (req, res) => {
     }
 
     "Response" : {
+        "session_id" : "SESSION_ID_STRING",
         "session_token" : "CONVERSATION_ID_STRING",
         "response" : "CHATBOT_RESPONSE"
     }
@@ -75,8 +102,9 @@ express.post('/conversation', (req, res) => {
             } else {
                 //Respond with conversation data
                 res.send(JSON.stringify({
-                    session_token : chatbotData.sessionToken, //Session ID used to maintain state
-	                response : chatbotData.text //The chatbot response
+                    session_id: chatbotData.sessionId, //Session ID used to reference the conversation
+                    session_token: chatbotData.sessionToken, //Session token used to maintain state
+	                response: chatbotData.text //The chatbot response
                 }));
 
                 //Analyze the user input

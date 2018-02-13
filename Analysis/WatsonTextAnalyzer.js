@@ -9,7 +9,7 @@ const PASSWORD = "sCuXbPVlye6D";
  * @returns Returns a new instance of the text analyzer
  */
 function CreateAnalyzer() {
-    return natural_language_understanding = new NLU({
+    return new NLU({
         'username': USERNAME,
         'password': PASSWORD,
         'version_date': '2017-02-27'
