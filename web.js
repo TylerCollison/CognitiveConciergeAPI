@@ -46,8 +46,12 @@ express.post('/match', (req, res) => {
         //Search the database for the supplied session information
         database.tables.sessions.GetItem(sessionId, function(err, data) {
             //Determine whether there was an internal error
-            if (err) {
+            if (err || typeof(data) === 'undefined') {
                 console.log(err);
+                res.send(JSON.stringify({
+                    match_count: 0, 
+                    matches: []
+                }));
             } else {
                 var explorer = new LocationExplorer(); //Create a new location explorer
                 //Determine whether there are any concepts associated with the session
