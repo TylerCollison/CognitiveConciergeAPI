@@ -12,7 +12,7 @@ const PASSWORD = "IBzHj72DXkLm";
  */
 function CreateNewConversation() {
     // Set up Conversation service wrapper.
-    return conversation = new Conversation({
+    return new Conversation({
         username: USERNAME,
         password: PASSWORD, // replace with service password
         version_date: '2017-05-26'
