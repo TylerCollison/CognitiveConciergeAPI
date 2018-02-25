@@ -1,12 +1,13 @@
 const KnowledgeBase = require("./KnowledgeBase");
 const cryptoEngine = require("../Cryptography/cryptoEngine");
+const DBPediaQuery = require("./DBPediaLocationQuery");
 
 const CONCEPT_IDENTIFIER = "enriched_text.concepts.text";
 const ENTITY_IDENTIFIER = "enriched_text.entities.text";
 const KEYWORD_IDENTIFIER = "enriched_text.keywords.text";
 
-const AGGREGATOR = "[nested(enriched_text.entities).filter(enriched_text.entities.type::\"Location\",enriched_text.entities.disambiguation.subtype::!\"Continent\").term(enriched_text.entities.text,count:10).term(enriched_text.entities.disambiguation.name,count:1),nested(enriched_text.entities).filter(enriched_text.entities.type::\"GeographicFeature\").term(enriched_text.entities.text,count:10).term(enriched_text.entities.disambiguation.name,count:1)]";
-const FILTER = "enriched_text.sentiment.document.label::!\"negative\",enriched_text.entities.type:\"Location\"";
+const AGGREGATOR = "nested(enriched_text.entities.disambiguation).filter(enriched_text.entities.disambiguation.subtype:(\"Location\"|\"GeographicFeature\"|\"City\"|\"Region\"|\"GovernmentalJurisdiction\"|\"StateOrCountry\"|\"PoliticalDistrict\"|\"BodyOfWater\"|\"USState\"|\"Kingdom\"|\"River\"|\"USCounty\"|\"Island\"|\"Lake\"|\"MountainRange\"|\"CityTown\"|\"Mountain\"|\"IslandGroup\"|\"IndianCity\"),enriched_text.entities.disambiguation.subtype::!(\"Country\"|\"Continent\")).term(enriched_text.entities.disambiguation.dbpedia_resource,count:20).term(enriched_text.entities.disambiguation.name,count:1)";
+const FILTER = "enriched_text.sentiment.document.label::!\"negative\",enriched_text.entities.type:\"Location\"|\"GeographicFeature\"";
 
 /**
  * Generates the query string used as input into the Watson Discovery Service from the given map
@@ -48,21 +49,46 @@ function ExtractResults(response) {
                 results.push({
                     id: cryptoEngine.hashPassword(disambiguationNames[0].key, ""), //Generate a unique ID
                     location: disambiguationNames[0].key, 
-                    description: "Description not available", //TODO: replace this with meaningful data
-                    confidence: 0.0 //TODO: replace this with meaningful confidence
-                });
-            } else {
-                //If not, use the extracted name
-                results.push({
-                    id: cryptoEngine.hashPassword(originalResults[j].key, ""), //Generate a unique ID
-                    location: originalResults[j].key, 
-                    description: "Description not available", //TODO: replace this with meaningful data
-                    confidence: 0.0 //TODO: replace this with meaningful confidence
+                    description: "No description available", //TODO: replace this with meaningful data
+                    dbpedia: originalResults[j].key,
+                    confidence: Math.random() //TODO: replace this with meaningful confidence
                 });
             }
         }
     }
     return results;
+}
+
+/**
+ * Adds DBPedia data to the location objects in the given list
+ * @param {A list of location objects, each with a dbpedia field} locations 
+ * @param {Callback function called after adding DBPedia data to the location objects} cb 
+ */
+function AddDBPediaData(locations, cb) {
+    //Create a new DBPedia query
+    var dbpediaQuery = new DBPediaQuery();
+    //Add each DBPedia location resource to the query
+    for (var i = 0; i < locations.length; i++) {
+        dbpediaQuery.AddResource(locations[i].dbpedia);
+    }
+    //Send the query
+    dbpediaQuery.Send(function(err, data) {
+        //Determine whether there was an error
+        if (err) {
+            cb(err, null);
+        } else {
+            //Process each location object
+            for (var i = 0; i < locations.length; i++) {
+                //Determine whether DBPedia description data was found for the location
+                var dbpediaData = data[locations[i].dbpedia];
+                if (dbpediaData) {
+                    //If so, add it to the object
+                    locations[i].description = dbpediaData.description;
+                }
+            }
+            cb(null, locations);
+        }
+    });
 }
 
 /**
@@ -84,7 +110,7 @@ class LocationExplorer {
      */
     AddSearchConcepts(concepts) {
         for (var i = 0; i < concepts.length; i++) {
-            this.queryMap[CONCEPT_IDENTIFIER] = this.queryMap[CONCEPT_IDENTIFIER] + "\"" + concepts[i] + "\",";
+            this.queryMap[CONCEPT_IDENTIFIER] = this.queryMap[CONCEPT_IDENTIFIER] + "\"" + concepts[i] + "\"|";
         }
     }
 
@@ -94,7 +120,7 @@ class LocationExplorer {
      */
     AddSearchEntities(entities) {
         for (var i = 0; i < entities.length; i++) {
-            this.queryMap[ENTITY_IDENTIFIER] = this.queryMap[ENTITY_IDENTIFIER] + "\"" + entities[i] + "\",";
+            this.queryMap[ENTITY_IDENTIFIER] = this.queryMap[ENTITY_IDENTIFIER] + "\"" + entities[i] + "\"|";
         }
     }
 
@@ -104,7 +130,7 @@ class LocationExplorer {
      */
     AddSearchKeywords(keywords) {
         for (var i = 0; i < keywords.length; i++) {
-            this.queryMap[KEYWORD_IDENTIFIER] = this.queryMap[KEYWORD_IDENTIFIER] + "\"" + keywords[i] + "\",";
+            this.queryMap[KEYWORD_IDENTIFIER] = this.queryMap[KEYWORD_IDENTIFIER] + "\"" + keywords[i] + "\"|";
         }
     }
 
@@ -119,7 +145,14 @@ class LocationExplorer {
             if (err) {
                 callback(err, null);
             } else {
-                callback(err, ExtractResults(data));
+                var results = ExtractResults(data);
+                AddDBPediaData(results, function(err, locations) {
+                    if (err) {
+                        callback(err, null);
+                    } else {
+                        callback(err, locations);
+                    }
+                });
             }
         }, null, FILTER, AGGREGATOR);
     }
