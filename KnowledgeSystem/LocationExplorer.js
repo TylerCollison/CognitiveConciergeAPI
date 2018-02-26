@@ -145,6 +145,7 @@ class LocationExplorer {
             if (err) {
                 callback(err, null);
             } else {
+                //Add DBPedia data to the results
                 var results = ExtractResults(data);
                 AddDBPediaData(results, function(err, locations) {
                     if (err) {
