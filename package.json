@@ -11,7 +11,9 @@
   "dependencies": {
     "aws-sdk": "^2.190.0",
     "body-parser": "^1.18.2",
+    "dbpedia-sparql-client": "^0.9.8",
     "express": "^4.16.2",
+    "sparqling-star": "^1.1.0",
     "watson-developer-cloud": "^3.0.6"
   },
   "devDependencies": {},

@@ -16,6 +16,37 @@ function CreateAnalyzer() {
     });
 }
 
+function ExtractFeature(analyzer, feature, relevance, sentiment, joy) {
+    var result = [];
+    var rawFeatures = analyzer.analysis[feature]; //Store the raw features from the analyzer
+    //Process each feature
+    for (var feature in rawFeatures) {
+        //Determine whether the feature is relevant enough
+        if (relevance) {
+            if (rawFeatures[feature].relevance >= relevance) {
+                //Determine whether the feature is positive enough
+                if (sentiment) {
+                    if (rawFeatures[feature].sentiment.score >= sentiment) {
+                        //Determine whether the feature is joyful enough
+                        if (joy) {
+                            if (rawFeatures[feature].emotions.joy >= joy) {
+                                result.push(rawFeatures[feature].text); //Add the feature to the result
+                            }
+                        } else {
+                            result.push(rawFeatures[feature].text); //Add the feature to the result
+                        }
+                    }
+                } else {
+                    result.push(rawFeatures[feature].text); //Add the feature to the result
+                }
+            }
+        } else {
+            result.push(rawFeatures[feature].text); //Add the feature to the result
+        }
+    }
+    return result;
+}
+
 /**
  * Performs Natural Language Processing analysis on text segments
  */
@@ -44,20 +75,49 @@ class TextAnalyzer {
              * @returns returns a list of string concepts; empty if no concepts were found or analysis has not been performed
              */
             GetConcepts(relevance) {
-                var result = [];
-                var rawConcepts = analyzer.analysis.concepts; //Store the raw concepts from the analyzer
-                //Process each concept
-                for (var concept in rawConcepts) {
-                    //Determine whether the concept is relevant enough
-                    if (relevance) {
-                        if (rawConcepts[concept].relevance >= relevance) {
-                            result.push(rawConcepts[concept].text); //Add the concept to the result
-                        }
-                    } else {
-                        result.push(rawConcepts[concept].text); //Add the concept to the result
-                    }
-                }
-                return result;
+                return ExtractFeature(analyzer, "concepts", relevance);
+            }
+        }
+
+        /**
+         * Convenience subclass; Extracts keywords from text using the corresponding TextAnalyzer instance
+         */
+        this.KeywordExtractor = class KeywordExtractor {
+            constructor(sentiment, emotion) {
+                analyzer.AddKeywordAnalysis(emotion, sentiment); //Add keyword analysis to the analyzer
+            }
+
+            /**
+             * Retrieve the keywords found through text analysis; must perform analysis before calling this method. 
+             * @param {The minimum relevance that a keyword must have to be returned} relevance 
+             * @param {The minimum positivity that a keyword must have to be returned} sentiment 
+             * @param {The minimum joy that a keyword must have to be returned} joy 
+             *
+             * @returns returns a list of string keywords; empty if no concepts were found or analysis has not been performed
+             */
+            GetKeywords(relevance, sentiment, joy) {
+                return ExtractFeature(analyzer, "keywords", relevance, sentiment, joy);
+            }
+        }
+
+        /**
+         * Convenience subclass; Extracts entities from text using the corresponding TextAnalyzer instance
+         */
+        this.EntityExtractor = class EntityExtractor {
+            constructor(sentiment, emotion) {
+                analyzer.AddEntityAnalysis(emotion, sentiment); //Add entity analysis to the analyzer
+            }
+
+            /**
+             * Retrieve the entities found through text analysis; must perform analysis before calling this method. 
+             * @param {The minimum relevance that a entity must have to be returned} relevance 
+             * @param {The minimum positivity that a entity must have to be returned} sentiment 
+             * @param {The minimum joy that a entity must have to be returned} joy 
+             * 
+             * @returns returns a list of string entities; empty if no concepts were found or analysis has not been performed
+             */
+            GetEntities(relevance, sentiment, joy) {
+                return ExtractFeature(analyzer, "entities", relevance, sentiment, joy);
             }
         }
     }
