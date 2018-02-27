@@ -7,6 +7,7 @@ const ChatBot = require("./ChatBot/WatsonConversation");
 const TextAnalyzer = require("./Analysis/WatsonTextAnalyzer");
 const Database = require("./Database/database");
 const LocationExplorer = require("./KnowledgeSystem/LocationExplorer");
+const Facebook = require("./SocialMedia/SocialMedia");
 
 //Setup express layer
 const express = new Express();
@@ -20,6 +21,16 @@ const chatbot = new ChatBot();
 
 //Get the database singleton
 const database = Database.GetInstance();
+
+//Initialize passport
+var session = require("express-session"),
+    bodyParser = require("body-parser");
+
+app.use(express.static("public"));
+app.use(session({ secret: "cats" }));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 /**
     "Request" : {
@@ -144,6 +155,37 @@ express.post('/conversation', (req, res) => {
     }
 });
 
+
+
+/***
+Websocket
+
+route: analyzefacebook
+"Request" : {
+   "token" : "TOKEN"
+}"Response" : {
+   "done" : TRUE/FALSE,
+   "status" : "STATUS_MESSAGE",
+   "concepts" : [
+       {
+           "name" : "CONCEPT_NAME",
+           "confidence" : CONFIDENCE_VALUE
+       {
+   ]
+}
+*/
+app.get('/analyzefacebook', function (req, res) {
+    var userToken = req.body.token;
+    url = 'https://graph.facebook.com/me/posts'
+    parameters = { 'access_token': userToken }
+    r = requests.get(url, params = parameters)
+    result = json.loads(r.text)
+    if result['data']:
+        return True
+    else:
+    return False
+
+});
 //Get the correct port from the environment variables
 //var port = process.env.PORT;
 
