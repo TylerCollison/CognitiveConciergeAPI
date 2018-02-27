@@ -55,6 +55,26 @@ class SessionsTable {
     AddConcepts(sessionId, concepts, callback) {
         this.UpdateItem(sessionId, { Concepts: concepts }, callback);
     }
+
+    /**
+     * Add a list of keywords to a session
+     * @param {The ID of the session to add the concepts to} sessionId 
+     * @param {The keywords to add to the session} keywords 
+     * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
+     */
+    AddKeywords(sessionId, keywords, callback) {
+        this.UpdateItem(sessionId, { Keywords: keywords }, callback);
+    }
+
+    /**
+     * Add a list of entities to a session
+     * @param {The ID of the session to add the concepts to} sessionId 
+     * @param {The entities to add to the session} entities 
+     * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
+     */
+    AddEntities(sessionId, entities, callback) {
+        this.UpdateItem(sessionId, { Entities: entities }, callback);
+    }
 }
 
 module.exports = SessionsTable;
