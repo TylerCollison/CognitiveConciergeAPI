@@ -198,6 +198,7 @@ Websocket
 
 route: analyzefacebook
 "Request" : {
+   "sessionID": "SESSIONID",
    "token" : "TOKEN"
 }"Response" : {
    "done" : TRUE/FALSE,
@@ -212,15 +213,11 @@ route: analyzefacebook
 */
 app.get('/analyzefacebook', function (req, res) {
     var userToken = req.body.token;
+    var sessionID = req.body.sessionID;
     url = 'https://graph.facebook.com/me/posts'
     parameters = { 'access_token': userToken }
     r = requests.get(url, params = parameters)
     result = json.loads(r.text)
-    if result['data']:
-        return True
-    else:
-    return False
-
 });
 //Get the correct port from the environment variables
 //var port = process.env.PORT;
