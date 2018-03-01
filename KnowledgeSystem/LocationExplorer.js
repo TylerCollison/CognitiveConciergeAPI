@@ -140,6 +140,7 @@ class LocationExplorer {
      */
     Search(callback) {
         var queryString = GenerateQueryString(this.queryMap); //Generate the appropriate query string
+        console.log(queryString);
         //Query the knowledge base for aggregation
         this.client.Query(queryString, 0, function(err, data) {
             if (err) {
