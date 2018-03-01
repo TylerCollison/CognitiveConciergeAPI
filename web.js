@@ -8,7 +8,7 @@ const TextAnalyzer = require("./Analysis/WatsonTextAnalyzer");
 const Database = require("./Database/database");
 const LocationExplorer = require("./KnowledgeSystem/LocationExplorer");
 const FB = require('fb');
-
+var fb = new FB.Facebook();
 //Setup express layer
 const express = new Express();
 express.use(bp.json({type: 'application/json'})); 
@@ -26,11 +26,7 @@ const database = Database.GetInstance();
 var session = require("express-session"),
     bodyParser = require("body-parser");
 
-app.use(express.static("public"));
-app.use(session({ secret: "cats" }));
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(passport.initialize());
-app.use(passport.session());
+
 
 /**
     "Request" : {
@@ -211,58 +207,26 @@ route: analyzefacebook
    ]
 }
 */
-app.get('/analyzefacebook', function (req, res) {
-    var userToken = req.body.token;
-    var sessionID = req.body.sessionID;
-    url = 'https://graph.facebook.com/me/posts'
-    parameters = { 'access_token': userToken }
-    FB.setAccesstoken(userToken);
-    r = requests.get(url, params = parameters)
-    result = json.loads(r.text)
-    status = "Facebook data retrieved"
-
-    var analyzer = new TextAnalyzer(result);
-    var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
-    var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
-    var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
-
-    if (concepts.length > 0) {
-        console.log("Concepts Detected: " + concepts);
-        //Associate these concepts with this user session
-        database.tables.sessions.AddConcepts(sessionID, concepts, function (error) {
-            status = "Concepts retrieved"
-            //Log any errors
-            if (error) {
-                console.log(error);
-            }
-        });
-    }
-    //Determine whether any keywords were found
-    if (keywords.length > 0) {
-        console.log("Keywords Detected: " + keywords);
-        //Associate these keywords with this user session
-        database.tables.sessions.AddKeywords(sessionId, keywords, function (error) {
-            status = "Keywords retrieved"
-            //Log any errors
-            if (error) {
-                console.log(error);
-            }
-        });
-    }
-    //Determine whether any entities were found
-    if (entities.length > 0) {
-        console.log("Entities Detected: " + entities);
-        //Associate these entities with this user session
-        database.tables.sessions.AddEntities(sessionId, entities, function (error) {
-            status = "Entities retrieved"
-            //Log any errors
-            if (error) {
-                console.log(error);
-            }
-        });
-    }
-
-    res.body.done = true
+express.get('/analyzefacebook', function (req, res) {
+    //Get userToken and sessionID from the client
+    //var userToken = req.body.token;
+    //var sessionID = req.body.sessionID;
+    var userToken = 'EAACEdEose0cBAOUdZARCrkZCVnhtQFZCNOAxZC9FiPP9VlmT0ESMwV6qkZAxCJLl2pK8pC1jmZC6E67pTMJ7esibARqp0bj954Q2dSGnXzUije44zafIZBZCxFfwGfCyBHoKGjOYJa0uGZBNKZB81briZBYzyQGYjVrgLL04roDtazuDuipbWt46NRZAqtbsD8ITSKYZD'
+    var postsArray;
+    //url = 'https://graph.facebook.com/me/posts'
+    //Authorize with access token
+    FB.setAccessToken(userToken);
+    //Get posts
+    FB.api('me/posts', { access_token: userToken },function (res) {
+        if (!res || res.error) {
+            console.log(!res ? 'error occurred' : res.error);
+            return;
+        }
+        postsArray = res.data;
+        GetConceptsFromPosts(postsArray)
+        console.log(res.data);
+    });
+    var status = "Facebook data retrieved"
 
 });
 //Get the correct port from the environment variables
@@ -275,3 +239,49 @@ var port = 8000;
 server.listen(port, () => {
     console.log("Access on Android Server bound on port: " + port.toString());
 });
+function GetConceptsFromPosts(postsArray) {
+    for (var i = 0; i < postsArray.length; i++) {
+        var singlePost = postsArray[i];
+        var analyzer = new TextAnalyzer(singlePost);
+        var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
+        var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
+        var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
+        if (concepts.length > 0) {
+            console.log("Concepts Detected: " + concepts);
+            //Associate these concepts with this user session
+            database.tables.sessions.AddConcepts(sessionID, concepts, function (error) {
+           
+                //Log any errors
+                if (error) {
+                    console.log(error);
+                }
+            });
+        }
+        for (var i = 0; i < arrayLength; i++) {
+            //Determine whether any keywords were found
+            if (keywords.length > 0) {
+                console.log("Keywords Detected: " + keywords);
+                //Associate these keywords with this user session
+                database.tables.sessions.AddKeywords(sessionId, keywords, function (error) {
+                   
+                    //Log any errors
+                    if (error) {
+                        console.log(error);
+                    }
+                });
+            }
+            //Determine whether any entities were found
+            if (entities.length > 0) {
+                console.log("Entities Detected: " + entities);
+                //Associate these entities with this user session
+                database.tables.sessions.AddEntities(sessionId, entities, function (error) {
+                    
+                    //Log any errors
+                    if (error) {
+                        console.log(error);
+                    }
+                });
+            }
+        }
+    }
+}

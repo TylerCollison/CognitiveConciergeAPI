@@ -13,6 +13,8 @@
     "body-parser": "^1.18.2",
     "dbpedia-sparql-client": "^0.9.8",
     "express": "^4.16.2",
+    "express-session": "^1.15.6",
+    "fb": "^2.0.0",
     "sparqling-star": "^1.1.0",
     "watson-developer-cloud": "^3.0.6"
   },

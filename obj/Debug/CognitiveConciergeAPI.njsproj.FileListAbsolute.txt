@@ -1,0 +1,3 @@
+C:\DEV\Github\Cloned\CognitiveConcierge\CognitiveConciergeAPI\obj\Debug\CognitiveConciergeAPI.njsprojResolveAssemblyReference.cache
+C:\DEV\Github\Cloned\CognitiveConcierge\CognitiveConciergeAPI\obj\Debug\CognitiveConciergeAPI.njsproj.CoreCompileInputs.cache
+C:\DEV\Github\Cloned\CognitiveConcierge\CognitiveConciergeAPI\bin\Microsoft.NodejsTools.WebRole.dll
