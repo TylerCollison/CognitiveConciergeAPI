@@ -7,7 +7,7 @@ const ChatBot = require("./ChatBot/WatsonConversation");
 const TextAnalyzer = require("./Analysis/WatsonTextAnalyzer");
 const Database = require("./Database/database");
 const LocationExplorer = require("./KnowledgeSystem/LocationExplorer");
-const Facebook = require("./SocialMedia/SocialMedia");
+const FB = require('fb');
 
 //Setup express layer
 const express = new Express();
@@ -216,8 +216,54 @@ app.get('/analyzefacebook', function (req, res) {
     var sessionID = req.body.sessionID;
     url = 'https://graph.facebook.com/me/posts'
     parameters = { 'access_token': userToken }
+    FB.setAccesstoken(userToken);
     r = requests.get(url, params = parameters)
     result = json.loads(r.text)
+    status = "Facebook data retrieved"
+
+    var analyzer = new TextAnalyzer(result);
+    var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
+    var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
+    var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
+
+    if (concepts.length > 0) {
+        console.log("Concepts Detected: " + concepts);
+        //Associate these concepts with this user session
+        database.tables.sessions.AddConcepts(sessionID, concepts, function (error) {
+            status = "Concepts retrieved"
+            //Log any errors
+            if (error) {
+                console.log(error);
+            }
+        });
+    }
+    //Determine whether any keywords were found
+    if (keywords.length > 0) {
+        console.log("Keywords Detected: " + keywords);
+        //Associate these keywords with this user session
+        database.tables.sessions.AddKeywords(sessionId, keywords, function (error) {
+            status = "Keywords retrieved"
+            //Log any errors
+            if (error) {
+                console.log(error);
+            }
+        });
+    }
+    //Determine whether any entities were found
+    if (entities.length > 0) {
+        console.log("Entities Detected: " + entities);
+        //Associate these entities with this user session
+        database.tables.sessions.AddEntities(sessionId, entities, function (error) {
+            status = "Entities retrieved"
+            //Log any errors
+            if (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    res.body.done = true
+
 });
 //Get the correct port from the environment variables
 //var port = process.env.PORT;
