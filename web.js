@@ -207,13 +207,14 @@ route: analyzefacebook
    ]
 }
 */
-express.get('/analyzefacebook', function (req, res) {
+express.post('/analyzefacebook', function (req, res) {
     //Get userToken and sessionID from the client
-    //var userToken = req.body.token;
-    //var sessionID = req.body.sessionID;
-    var userToken = 'EAACEdEose0cBAJe2EDMcUk5C7UlY1k2a3SR3yoIj5aJZAPkKcQhxODHGmtPOf29SNustjj5yKaQnGLz47kMShQyE7T1341iWbYrqy8nJpTReUGeCaZBZCPEWR9ZAMbtbN2gAEySFzo8ZBP4c7R2ziAuagXdKRiRb2kHsONHX92PuizIOlAItsPut4WAcpu2WcYF9ZBbE6IDAZDZD'
+    console.print("we are in")
+    var userToken = req.body.token;
+    var sessionID = req.body.session_id;
+    //var userToken = 'EAACEdEose0cBAJe2EDMcUk5C7UlY1k2a3SR3yoIj5aJZAPkKcQhxODHGmtPOf29SNustjj5yKaQnGLz47kMShQyE7T1341iWbYrqy8nJpTReUGeCaZBZCPEWR9ZAMbtbN2gAEySFzo8ZBP4c7R2ziAuagXdKRiRb2kHsONHX92PuizIOlAItsPut4WAcpu2WcYF9ZBbE6IDAZDZD'
     var postsArray;
-    var sessionID = 0;
+    //var sessionID = 0;
     //url = 'https://graph.facebook.com/me/posts'
     //Authorize with access token
     FB.setAccessToken(userToken);
