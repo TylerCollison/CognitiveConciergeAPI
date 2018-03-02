@@ -211,8 +211,9 @@ express.get('/analyzefacebook', function (req, res) {
     //Get userToken and sessionID from the client
     //var userToken = req.body.token;
     //var sessionID = req.body.sessionID;
-    var userToken = 'EAACEdEose0cBAOUdZARCrkZCVnhtQFZCNOAxZC9FiPP9VlmT0ESMwV6qkZAxCJLl2pK8pC1jmZC6E67pTMJ7esibARqp0bj954Q2dSGnXzUije44zafIZBZCxFfwGfCyBHoKGjOYJa0uGZBNKZB81briZBYzyQGYjVrgLL04roDtazuDuipbWt46NRZAqtbsD8ITSKYZD'
+    var userToken = 'EAACEdEose0cBAJe2EDMcUk5C7UlY1k2a3SR3yoIj5aJZAPkKcQhxODHGmtPOf29SNustjj5yKaQnGLz47kMShQyE7T1341iWbYrqy8nJpTReUGeCaZBZCPEWR9ZAMbtbN2gAEySFzo8ZBP4c7R2ziAuagXdKRiRb2kHsONHX92PuizIOlAItsPut4WAcpu2WcYF9ZBbE6IDAZDZD'
     var postsArray;
+    var sessionID = 0;
     //url = 'https://graph.facebook.com/me/posts'
     //Authorize with access token
     FB.setAccessToken(userToken);
@@ -223,7 +224,7 @@ express.get('/analyzefacebook', function (req, res) {
             return;
         }
         postsArray = res.data;
-        GetConceptsFromPosts(postsArray)
+        GetConceptsFromPosts(postsArray,sessionID)
         console.log(res.data);
     });
     var status = "Facebook data retrieved"
@@ -239,49 +240,60 @@ var port = 8000;
 server.listen(port, () => {
     console.log("Access on Android Server bound on port: " + port.toString());
 });
-function GetConceptsFromPosts(postsArray) {
+function GetConceptsFromPosts(postsArray, sessionID) {
     for (var i = 0; i < postsArray.length; i++) {
         var singlePost = postsArray[i];
-        var analyzer = new TextAnalyzer(singlePost);
-        var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
-        var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
-        var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
-        if (concepts.length > 0) {
-            console.log("Concepts Detected: " + concepts);
-            //Associate these concepts with this user session
-            database.tables.sessions.AddConcepts(sessionID, concepts, function (error) {
-           
-                //Log any errors
-                if (error) {
-                    console.log(error);
+        if (singlePost.hasOwnProperty('message')) {
+            var analyzer = new TextAnalyzer(singlePost.message);
+            var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
+            var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
+            var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
+
+            analyzer.Analyze(function (err) {
+                //Check for analysis error
+                if (err) {
+                    console.log(err);
+                } else {
+                    //Store the concepts that were found
+                    var concepts = conceptExtractor.GetConcepts();
+                    var keywords = keywordExtractor.GetKeywords();
+                    var entities = entityExtractor.GetEntities();
+                    //Determine whether any concepts were found
+                    if (concepts.length > 0) {
+                        console.log("Concepts Detected: " + concepts);
+                        //Associate these concepts with this user session
+                        database.tables.sessions.AddConcepts(sessionId, concepts, function (error) {
+                            //Log any errors
+                            if (error) {
+                                console.log(error);
+                            }
+                        });
+                    }
+                    //Determine whether any keywords were found
+                    if (keywords.length > 0) {
+                        console.log("Keywords Detected: " + keywords);
+                        //Associate these keywords with this user session
+                        database.tables.sessions.AddKeywords(sessionId, keywords, function (error) {
+                            //Log any errors
+                            if (error) {
+                                console.log(error);
+                            }
+                        });
+                    }
+                    //Determine whether any entities were found
+                    if (entities.length > 0) {
+                        console.log("Entities Detected: " + entities);
+                        //Associate these entities with this user session
+                        database.tables.sessions.AddEntities(sessionId, entities, function (error) {
+                            //Log any errors
+                            if (error) {
+                                console.log(error);
+                            }
+                        });
+                    }
                 }
             });
-        }
-        for (var i = 0; i < arrayLength; i++) {
-            //Determine whether any keywords were found
-            if (keywords.length > 0) {
-                console.log("Keywords Detected: " + keywords);
-                //Associate these keywords with this user session
-                database.tables.sessions.AddKeywords(sessionId, keywords, function (error) {
-                   
-                    //Log any errors
-                    if (error) {
-                        console.log(error);
-                    }
-                });
-            }
-            //Determine whether any entities were found
-            if (entities.length > 0) {
-                console.log("Entities Detected: " + entities);
-                //Associate these entities with this user session
-                database.tables.sessions.AddEntities(sessionId, entities, function (error) {
-                    
-                    //Log any errors
-                    if (error) {
-                        console.log(error);
-                    }
-                });
-            }
+        
         }
     }
 }
