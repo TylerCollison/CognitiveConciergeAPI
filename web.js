@@ -209,7 +209,7 @@ route: analyzefacebook
 */
 express.post('/analyzefacebook', function (req, res) {
     //Get userToken and sessionID from the client
-    console.print("we are in")
+    console.log("we are in")
     var userToken = req.body.token;
     var sessionID = req.body.session_id;
     //var userToken = 'EAACEdEose0cBAJe2EDMcUk5C7UlY1k2a3SR3yoIj5aJZAPkKcQhxODHGmtPOf29SNustjj5yKaQnGLz47kMShQyE7T1341iWbYrqy8nJpTReUGeCaZBZCPEWR9ZAMbtbN2gAEySFzo8ZBP4c7R2ziAuagXdKRiRb2kHsONHX92PuizIOlAItsPut4WAcpu2WcYF9ZBbE6IDAZDZD'
@@ -224,9 +224,11 @@ express.post('/analyzefacebook', function (req, res) {
             console.log(!res ? 'error occurred' : res.error);
             return;
         }
+        console.log(postsArray)
         postsArray = res.data;
         GetConceptsFromPosts(postsArray,sessionID)
         console.log(res.data);
+        
     });
     var status = "Facebook data retrieved"
 
@@ -263,7 +265,7 @@ function GetConceptsFromPosts(postsArray, sessionID) {
                     if (concepts.length > 0) {
                         console.log("Concepts Detected: " + concepts);
                         //Associate these concepts with this user session
-                        database.tables.sessions.AddConcepts(sessionId, concepts, function (error) {
+                        database.tables.sessions.AddConcepts(sessionID, concepts, function (error) {
                             //Log any errors
                             if (error) {
                                 console.log(error);
@@ -274,7 +276,7 @@ function GetConceptsFromPosts(postsArray, sessionID) {
                     if (keywords.length > 0) {
                         console.log("Keywords Detected: " + keywords);
                         //Associate these keywords with this user session
-                        database.tables.sessions.AddKeywords(sessionId, keywords, function (error) {
+                        database.tables.sessions.AddKeywords(sessionID, keywords, function (error) {
                             //Log any errors
                             if (error) {
                                 console.log(error);
