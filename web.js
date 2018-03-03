@@ -54,7 +54,9 @@ express.post('/match', (req, res) => {
         database.tables.sessions.GetItem(sessionId, function(err, data) {
             //Determine whether there was an internal error
             if (err || typeof(data) === 'undefined') {
-                console.log(err);
+                if (err) {
+                    console.log(err);
+                }
                 res.send(JSON.stringify({
                     match_count: 0, 
                     matches: []
@@ -62,19 +64,34 @@ express.post('/match', (req, res) => {
             } else {
                 var explorer = new LocationExplorer(); //Create a new location explorer
                 //Determine whether there are any concepts associated with the session
-                if (data.Concepts) {
+                if (data.ChatConcepts) {
                     //TODO: remove the Concept Set at the database level
-                    explorer.AddSearchConcepts(data.Concepts.values); //Add the concepts 
+                    explorer.AddSearchConcepts(data.ChatConcepts.values); //Add the concepts 
                 }
                 //Determine whether there are any keywords associated with the session
-                if (data.Keywords) {
+                if (data.ChatKeywords) {
                     //TODO: remove the Concept Set at the database level
-                    explorer.AddSearchKeywords(data.Keywords.values); //Add the keywords 
+                    explorer.AddSearchKeywords(data.ChatKeywords.values); //Add the keywords 
                 }
                 //Determine whether there are any entities associated with the session
-                if (data.Entities) {
+                if (data.ChatEntities) {
                     //TODO: remove the Concept Set at the database level
-                    explorer.AddSearchEntities(data.Entities.values); //Add the entities 
+                    explorer.AddSearchEntities(data.ChatEntities.values); //Add the entities 
+                }
+                //Determine whether there are any concepts associated with the session
+                if (data.FacebookConcepts) {
+                    //TODO: remove the Concept Set at the database level
+                    explorer.AddSearchConcepts(data.FacebookConcepts.values); //Add the concepts 
+                }
+                //Determine whether there are any keywords associated with the session
+                if (data.FacebookKeywords) {
+                    //TODO: remove the Concept Set at the database level
+                    explorer.AddSearchKeywords(data.FacebookKeywords.values); //Add the keywords 
+                }
+                //Determine whether there are any entities associated with the session
+                if (data.FacebookEntities) {
+                    //TODO: remove the Concept Set at the database level
+                    explorer.AddSearchEntities(data.FacebookEntities.values); //Add the entities 
                 }
                 //Search for locations based on the supplied parameters
                 explorer.Search(function(err, data) {
@@ -147,7 +164,7 @@ express.post('/conversation', (req, res) => {
                         if (concepts.length > 0) {
                             console.log("Concepts Detected: " + concepts);
                             //Associate these concepts with this user session
-                            database.tables.sessions.AddConcepts(chatbotData.sessionId, concepts, function(error) {
+                            database.tables.sessions.AddChatConcepts(chatbotData.sessionId, concepts, function(error) {
                                 //Log any errors
                                 if (error) {
                                     console.log(error);
@@ -158,7 +175,7 @@ express.post('/conversation', (req, res) => {
                         if (keywords.length > 0) {
                             console.log("Keywords Detected: " + keywords);
                             //Associate these keywords with this user session
-                            database.tables.sessions.AddKeywords(chatbotData.sessionId, keywords, function(error) {
+                            database.tables.sessions.AddChatKeywords(chatbotData.sessionId, keywords, function(error) {
                                 //Log any errors
                                 if (error) {
                                     console.log(error);
@@ -169,7 +186,7 @@ express.post('/conversation', (req, res) => {
                         if (entities.length > 0) {
                             console.log("Entities Detected: " + entities);
                             //Associate these entities with this user session
-                            database.tables.sessions.AddEntities(chatbotData.sessionId, entities, function(error) {
+                            database.tables.sessions.AddChatEntities(chatbotData.sessionId, entities, function(error) {
                                 //Log any errors
                                 if (error) {
                                     console.log(error);
