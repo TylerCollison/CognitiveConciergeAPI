@@ -240,8 +240,8 @@ express.post('/analyzefacebook', function (req, res) {
             console.log(!res ? 'error occurred' : res.error);
             return;
         }
-        console.log(postsArray)
         postsArray = res.data;
+        console.log(postsArray)
         GetConceptsFromPosts(postsArray,sessionID)
         console.log(res.data);
         
@@ -301,7 +301,7 @@ express.get('/analyzefacebook', function (req, res) {
         res.status(400).send("ERROR: Bad request");
     }
 
-}
+});
 
 //Get the correct port from the environment variables
 //var port = process.env.PORT;
