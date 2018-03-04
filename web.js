@@ -164,7 +164,7 @@ express.post('/conversation', (req, res) => {
                         if (concepts.length > 0) {
                             console.log("Concepts Detected: " + concepts);
                             //Associate these concepts with this user session
-                            database.tables.sessions.AddChatConcepts(chatbotData.sessionId, concepts, function(error) {
+                            database.tables.sessions.AddSearchConcepts(chatbotData.sessionId, concepts, function (error) {
                                 //Log any errors
                                 if (error) {
                                     console.log(error);
@@ -226,7 +226,6 @@ route: analyzefacebook
 */
 express.post('/analyzefacebook', function (req, res) {
     //Get userToken and sessionID from the client
-    console.log("we are in")
     var userToken = req.body.token;
     var sessionID = req.body.session_id;
     //var userToken = 'EAACEdEose0cBAJe2EDMcUk5C7UlY1k2a3SR3yoIj5aJZAPkKcQhxODHGmtPOf29SNustjj5yKaQnGLz47kMShQyE7T1341iWbYrqy8nJpTReUGeCaZBZCPEWR9ZAMbtbN2gAEySFzo8ZBP4c7R2ziAuagXdKRiRb2kHsONHX92PuizIOlAItsPut4WAcpu2WcYF9ZBbE6IDAZDZD'
@@ -250,6 +249,12 @@ express.post('/analyzefacebook', function (req, res) {
     var status = "Facebook data retrieved"
 
 });
+
+express.get('/analyzefacebook', function (req, res) {
+    var sessionID = req.body.session_id;
+
+}
+
 //Get the correct port from the environment variables
 //var port = process.env.PORT;
 
@@ -261,10 +266,14 @@ server.listen(port, () => {
     console.log("Access on Android Server bound on port: " + port.toString());
 });
 function GetConceptsFromPosts(postsArray, sessionID) {
+    var concatPosts = ""
     for (var i = 0; i < postsArray.length; i++) {
         var singlePost = postsArray[i];
         if (singlePost.hasOwnProperty('message')) {
-            var analyzer = new TextAnalyzer(singlePost.message);
+            concatPosts = concatPosts & "." & singlePost.message
+        }
+    }
+            var analyzer = new TextAnalyzer(concatPosts);
             var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
             var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
             var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
@@ -282,7 +291,7 @@ function GetConceptsFromPosts(postsArray, sessionID) {
                     if (concepts.length > 0) {
                         console.log("Concepts Detected: " + concepts);
                         //Associate these concepts with this user session
-                        database.tables.sessions.AddConcepts(sessionID, concepts, function (error) {
+                        database.tables.sessions.AddFacebookConcepts(sessionID, concepts, function (error) {
                             //Log any errors
                             if (error) {
                                 console.log(error);
@@ -293,7 +302,7 @@ function GetConceptsFromPosts(postsArray, sessionID) {
                     if (keywords.length > 0) {
                         console.log("Keywords Detected: " + keywords);
                         //Associate these keywords with this user session
-                        database.tables.sessions.AddKeywords(sessionID, keywords, function (error) {
+                        database.tables.sessions.AddChatKeywords(sessionID, keywords, function (error) {
                             //Log any errors
                             if (error) {
                                 console.log(error);
@@ -304,7 +313,7 @@ function GetConceptsFromPosts(postsArray, sessionID) {
                     if (entities.length > 0) {
                         console.log("Entities Detected: " + entities);
                         //Associate these entities with this user session
-                        database.tables.sessions.AddEntities(sessionId, entities, function (error) {
+                        database.tables.sessions.AddFacebookEntities(sessionId, entities, function (error) {
                             //Log any errors
                             if (error) {
                                 console.log(error);
@@ -314,6 +323,6 @@ function GetConceptsFromPosts(postsArray, sessionID) {
                 }
             });
         
-        }
-    }
+        
+    
 }
