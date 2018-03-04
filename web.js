@@ -246,12 +246,60 @@ express.post('/analyzefacebook', function (req, res) {
         console.log(res.data);
         
     });
-    var status = "Facebook data retrieved"
 
 });
 
 express.get('/analyzefacebook', function (req, res) {
     var sessionID = req.body.session_id;
+
+    if (typeof (sessionId) != 'undefined') {
+        //Search the database for the supplied session information
+        database.tables.sessions.GetItem(sessionId, function (err, data) {
+            //Determine whether there was an internal error
+            if (err || typeof (data) === 'undefined') {
+                if (err) {
+                    console.log(err);
+                }
+                res.send(JSON.stringify({
+                    match_count: 0,
+                    matches: []
+                }));
+            } else {
+                var explorer = new LocationExplorer(); //Create a new location explorer
+                //Determine whether there are any concepts associated with the session
+                if (data.FacebookConcepts) {
+                    //TODO: remove the Concept Set at the database level
+                    explorer.AddSearchConcepts(data.FacebookConcepts.values); //Add the concepts 
+                }
+                //Determine whether there are any keywords associated with the session
+                if (data.FacebookKeywords) {
+                    //TODO: remove the Concept Set at the database level
+                    explorer.AddSearchKeywords(data.FacebookKeywords.values); //Add the keywords 
+                }
+                //Determine whether there are any entities associated with the session
+                if (data.FacebookEntities) {
+                    //TODO: remove the Concept Set at the database level
+                    explorer.AddSearchEntities(data.FacebookEntities.values); //Add the entities 
+                }
+                //Search for locations based on the supplied parameters
+                explorer.Search(function (err, data) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        //Respond with the matching location data
+                        res.send(JSON.stringify({
+                            match_count: data.length,
+                            matches: data
+                        }));
+                    }
+                });
+            }
+        });
+    } else {
+        //Throw an error if the request was malformed
+        console.log("Malformed request");
+        res.status(400).send("ERROR: Bad request");
+    }
 
 }
 
