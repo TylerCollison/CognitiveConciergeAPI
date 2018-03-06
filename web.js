@@ -249,8 +249,9 @@ express.post('/analyzefacebook', function (req, res) {
 
 });
 
-express.get('/analyzefacebook', function (req, res) {
-    var sessionID = req.body.session_id;
+express.post('/facebookresults', function (req, res) {
+    console.log("Getting facebook results...");
+    var sessionId = req.body.session_id;
 
     if (typeof (sessionId) != 'undefined') {
         //Search the database for the supplied session information
@@ -261,38 +262,17 @@ express.get('/analyzefacebook', function (req, res) {
                     console.log(err);
                 }
                 res.send(JSON.stringify({
-                    match_count: 0,
-                    matches: []
+                    concepts: [],
+                    keywords: [],
+                    entities: []
                 }));
             } else {
-                var explorer = new LocationExplorer(); //Create a new location explorer
-                //Determine whether there are any concepts associated with the session
-                if (data.FacebookConcepts) {
-                    //TODO: remove the Concept Set at the database level
-                    explorer.AddSearchConcepts(data.FacebookConcepts.values); //Add the concepts 
-                }
-                //Determine whether there are any keywords associated with the session
-                if (data.FacebookKeywords) {
-                    //TODO: remove the Concept Set at the database level
-                    explorer.AddSearchKeywords(data.FacebookKeywords.values); //Add the keywords 
-                }
-                //Determine whether there are any entities associated with the session
-                if (data.FacebookEntities) {
-                    //TODO: remove the Concept Set at the database level
-                    explorer.AddSearchEntities(data.FacebookEntities.values); //Add the entities 
-                }
-                //Search for locations based on the supplied parameters
-                explorer.Search(function (err, data) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        //Respond with the matching location data
-                        res.send(JSON.stringify({
-                            match_count: data.length,
-                            matches: data
-                        }));
-                    }
-                });
+                //Respond with the matching location data
+                res.send(JSON.stringify({
+                    concepts: data.FacebookConcepts ? data.FacebookConcepts.values : [],
+                    keywords: data.FacebookKeywords ? data.FacebookKeywords.values : [],
+                    entities: data.FacebookEntities ? data.FacebookEntities.values : []
+                }));
             }
         });
     } else {
