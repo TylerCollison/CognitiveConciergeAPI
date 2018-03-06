@@ -11,7 +11,8 @@ const FB = require('fb');
 var fb = new FB.Facebook();
 //Setup express layer
 const express = new Express();
-express.use(bp.json({type: 'application/json'})); 
+express.use(bp.json({ type: 'application/json' })); 
+
 
 //Setup HTTP server
 var server = http.createServer(express);
@@ -25,7 +26,6 @@ const database = Database.GetInstance();
 //Initialize passport
 var session = require("express-session"),
     bodyParser = require("body-parser");
-
 
 
 /**
@@ -81,7 +81,6 @@ express.post('/match', (req, res) => {
                 //Determine whether there are any concepts associated with the session
                 if (data.FacebookConcepts) {
                     //TODO: remove the Concept Set at the database level
-                    console.log("Facebook Concepts:");
                     console.log(data.AddFacebookConcepts.values);
                     explorer.AddSearchConcepts(data.FacebookConcepts.values); //Add the concepts 
                 }
@@ -153,7 +152,7 @@ express.post('/conversation', (req, res) => {
                 var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
                 var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
                 //Perform the analysis
-                analyzer.Analyze(function(err) {
+                analyzer.Analyze(function (err) {
                     //Check for analysis error
                     if (err) {
                         console.log(err);
@@ -242,6 +241,18 @@ express.post('/analyzefacebook', function (req, res) {
             console.log(!res ? 'error occurred' : res.error);
             return;
         }
+        //Set complete flags to false show show facebook has not completed running or analyzing posts
+        database.tables.sessions.AddFacebookAnaylzeStatus(sessionID, 0, function (error) {
+            if (error) {
+                console.log(error);
+            }
+        });
+        database.tables.sessions.AddFacebookRunningStatus(sessionID, 0, function (error) {
+            if (error) {
+                console.log(error);
+            }
+        });
+
         postsArray = res.data;
         GetConceptsFromPosts(postsArray,sessionID)
         
@@ -249,6 +260,8 @@ express.post('/analyzefacebook', function (req, res) {
     });
 
 });
+
+
 
 express.get('/analyzefacebook', function (req, res) {
     var sessionID = req.body.session_id;
@@ -288,9 +301,13 @@ express.get('/analyzefacebook', function (req, res) {
                         console.log(err);
                     } else {
                         //Respond with the matching location data
+                        var statusFBRunning = database.sessions.GetItem(sessionId).FacebookPostsStatus
+                        var statusAnalyze = database.sessions.GetItem(sessionId).FacebookAnaylzeStatus
                         res.send(JSON.stringify({
                             match_count: data.length,
-                            matches: data
+                            matches: data,
+                            fbFinished: statusFBRunning,
+                            analyzeFinished: statusAnalyze
                         }));
                     }
                 });
@@ -314,19 +331,27 @@ var port = 8000;
 server.listen(port, () => {
     console.log("Access on Android Server bound on port: " + port.toString());
 });
+
+
 function GetConceptsFromPosts(postsArray, sessionID) {
     var concatPosts = ""
     console.log("Data about posts");
     console.log(postsArray.length);
     console.log(postsArray);
+    //Put all posts into a single string to only have to create TextAnalyzer once
     for (var i = 0; i < postsArray.length; i++) {
         var singlePost = postsArray[i];
         if (singlePost.hasOwnProperty('message')) {
             console.log(singlePost.message);
-            concatPosts = concatPosts + "." + singlePost.message
+            concatPosts = concatPosts + " . " + singlePost.message
         }
     }
-   
+    //Set facebook running status to finished
+    database.tables.sessions.AddFacebookRunningStatus(sessionID, 1, function (error) {
+        if (error) {
+            console.log(error);
+        }
+    });
     console.log("Posts in 1 string:");
     console.log(concatPosts);
             var analyzer = new TextAnalyzer(concatPosts);
@@ -377,6 +402,12 @@ function GetConceptsFromPosts(postsArray, sessionID) {
                         });
                     }
                 }
+                //Set analyze flag to 1 to show that post analysis has finished.
+                database.tables.sessions.AddFacebookAnaylzeStatus(sessionID, 1, function (error) {
+                    if (error) {
+                        console.log(error);
+                    }
+                });
             });
         
         

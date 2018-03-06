@@ -105,6 +105,26 @@ class SessionsTable {
     AddFacebookEntities(sessionId, entities, callback) {
         this.UpdateItem(sessionId, { FacebookEntities: entities }, callback);
     }
+
+    /**
+     * Add true false value for if facebook concept search is finished
+     * @param {The ID of the session to add the status to} sessionId 
+     * @param {State value } entities 
+     * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
+     */
+    AddFacebookRunningStatus(sessionId, status, callback) {
+        this.UpdateItem(sessionId, { FacebookPostsStatus: status }, callback);
+    }
+
+    /**
+     * Add true false value for if facebook concept search is finished
+     * @param {The ID of the session to add the status to} sessionId 
+     * @param {State value } entities 
+     * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
+     */
+    AddFacebookAnaylzeStatus(sessionId, status, callback) {
+        this.UpdateItem(sessionId, { FacebookAnaylzeStatus: status }, callback);
+    }
 }
 
 module.exports = SessionsTable;
