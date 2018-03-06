@@ -81,6 +81,8 @@ express.post('/match', (req, res) => {
                 //Determine whether there are any concepts associated with the session
                 if (data.FacebookConcepts) {
                     //TODO: remove the Concept Set at the database level
+                    console.log("Facebook Concepts:");
+                    console.log(data.AddFacebookConcepts.values);
                     explorer.AddSearchConcepts(data.FacebookConcepts.values); //Add the concepts 
                 }
                 //Determine whether there are any keywords associated with the session
@@ -164,7 +166,7 @@ express.post('/conversation', (req, res) => {
                         if (concepts.length > 0) {
                             console.log("Concepts Detected: " + concepts);
                             //Associate these concepts with this user session
-                            database.tables.sessions.AddSearchConcepts(chatbotData.sessionId, concepts, function (error) {
+                            database.tables.sessions.AddChatConcepts(chatbotData.sessionId, concepts, function (error) {
                                 //Log any errors
                                 if (error) {
                                     console.log(error);
@@ -241,9 +243,8 @@ express.post('/analyzefacebook', function (req, res) {
             return;
         }
         postsArray = res.data;
-        console.log(postsArray)
         GetConceptsFromPosts(postsArray,sessionID)
-        console.log(res.data);
+        
         
     });
 
@@ -315,12 +316,19 @@ server.listen(port, () => {
 });
 function GetConceptsFromPosts(postsArray, sessionID) {
     var concatPosts = ""
+    console.log("Data about posts");
+    console.log(postsArray.length);
+    console.log(postsArray);
     for (var i = 0; i < postsArray.length; i++) {
         var singlePost = postsArray[i];
         if (singlePost.hasOwnProperty('message')) {
-            concatPosts = concatPosts & "." & singlePost.message
+            console.log(singlePost.message);
+            concatPosts = concatPosts + "." + singlePost.message
         }
     }
+   
+    console.log("Posts in 1 string:");
+    console.log(concatPosts);
             var analyzer = new TextAnalyzer(concatPosts);
             var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
             var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
@@ -361,7 +369,7 @@ function GetConceptsFromPosts(postsArray, sessionID) {
                     if (entities.length > 0) {
                         console.log("Entities Detected: " + entities);
                         //Associate these entities with this user session
-                        database.tables.sessions.AddFacebookEntities(sessionId, entities, function (error) {
+                        database.tables.sessions.AddFacebookEntities(sessionID, entities, function (error) {
                             //Log any errors
                             if (error) {
                                 console.log(error);
