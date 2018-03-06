@@ -242,7 +242,7 @@ express.post('/analyzefacebook', function (req, res) {
         }
         postsArray = res.data;
         console.log(postsArray)
-        GetConceptsFromPosts(postsArray,sessionID)
+        GetConceptsFromPosts(postsArray,sessionID);
         console.log(res.data);
         
     });
@@ -314,11 +314,11 @@ server.listen(port, () => {
     console.log("Access on Android Server bound on port: " + port.toString());
 });
 function GetConceptsFromPosts(postsArray, sessionID) {
-    var concatPosts = ""
+    var concatPosts = "";
     for (var i = 0; i < postsArray.length; i++) {
         var singlePost = postsArray[i];
         if (singlePost.hasOwnProperty('message')) {
-            concatPosts = concatPosts & "." & singlePost.message
+            concatPosts = concatPosts + " / " + singlePost.message
         }
     }
             var analyzer = new TextAnalyzer(concatPosts);
@@ -361,7 +361,7 @@ function GetConceptsFromPosts(postsArray, sessionID) {
                     if (entities.length > 0) {
                         console.log("Entities Detected: " + entities);
                         //Associate these entities with this user session
-                        database.tables.sessions.AddFacebookEntities(sessionId, entities, function (error) {
+                        database.tables.sessions.AddFacebookEntities(sessionID, entities, function (error) {
                             //Log any errors
                             if (error) {
                                 console.log(error);
