@@ -164,7 +164,7 @@ express.post('/conversation', (req, res) => {
                         if (concepts.length > 0) {
                             console.log("Concepts Detected: " + concepts);
                             //Associate these concepts with this user session
-                            database.tables.sessions.AddSearchConcepts(chatbotData.sessionId, concepts, function (error) {
+                            database.tables.sessions.AddChatConcepts(chatbotData.sessionId, concepts, function (error) {
                                 //Log any errors
                                 if (error) {
                                     console.log(error);
