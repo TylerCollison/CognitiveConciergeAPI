@@ -96,7 +96,7 @@ function AddDBPediaData(locations, cb) {
  */
 class LocationExplorer {
     constructor() {
-        this.client = KnowledgeBase.GetInstance();
+        this.client = new KnowledgeBase();
         //Setup query terms
         this.queryMap = {};
         this.queryMap[CONCEPT_IDENTIFIER] = "";
