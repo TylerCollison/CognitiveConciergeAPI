@@ -293,6 +293,7 @@ var port = 8000;
 server.listen(port, () => {
     console.log("Access on Android Server bound on port: " + port.toString());
 });
+
 function GetConceptsFromPosts(postsArray, sessionID) {
     var concatPosts = "";
     for (var i = 0; i < postsArray.length; i++) {
