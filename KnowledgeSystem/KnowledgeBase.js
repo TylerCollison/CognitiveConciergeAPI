@@ -68,13 +68,4 @@ class KnowledgeBase {
     }
 }
 
-//Database singleton
-var instance;
-function GetInstance() {
-    if (!instance) {
-        instance = new KnowledgeBase();
-    }
-    return instance;
-}
-
-module.exports.GetInstance = GetInstance;
+module.exports = KnowledgeBase;

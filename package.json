@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Tyler Collison and Val Val Yevtyeyev",
+  "author": "Tyler Collison and Val Yevtyeyev",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.190.0",
@@ -15,8 +15,7 @@
     "express": "^4.16.2",
     "express-session": "^1.15.6",
     "fb": "^2.0.0",
-    "sparqling-star": "^1.1.0",
-    "watson-developer-cloud": "^3.0.6"
+    "watson-developer-cloud": "^3.1.0"
   },
   "devDependencies": {},
   "repository": {
