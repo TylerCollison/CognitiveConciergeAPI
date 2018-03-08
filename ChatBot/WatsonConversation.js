@@ -1,9 +1,9 @@
 const Conversation = require('watson-developer-cloud/conversation/v1');
 const cryptoEngine = require('../Cryptography/cryptoEngine');
 
-const WORKSPACE_ID = "1e6c1bdb-7eb1-41ac-8874-5df7d8e24ef5"; //'d167dec0-a4db-474d-9b35-3b45ba7d563a';
-const USERNAME = "6587e09f-e41c-4dae-8ec6-294c57b3590b";//"59c61159-ea01-451d-a38c-192eae1ee451";
-const PASSWORD = "AV4iZHeuiGCQ"; //"eGUEh05mH1Km";
+const WORKSPACE_ID = "ce837b8e-4b80-473f-b6ab-9c6f9efab88e"; //'d167dec0-a4db-474d-9b35-3b45ba7d563a';
+const USERNAME = "59c61159-ea01-451d-a38c-192eae1ee451";//"59c61159-ea01-451d-a38c-192eae1ee451";
+const PASSWORD = "eGUEh05mH1Km"; //"eGUEh05mH1Km";
 
 /**
  * Creates a new Watson Conversation service instance
