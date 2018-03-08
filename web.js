@@ -129,6 +129,7 @@ express.post('/match', (req, res) => {
 express.post('/conversation', (req, res) => {
     var sessionToken = req.body.session_token;
     var input = req.body.input;
+    console.log(input);
 
     //Determine whether the request is malformed
     if (typeof(sessionToken) != 'undefined' && typeof(input) != 'undefined') {
@@ -145,56 +146,58 @@ express.post('/conversation', (req, res) => {
 	                response: chatbotData.text //The chatbot response
                 }));
 
-                //Analyze the user input
-                var analyzer = new TextAnalyzer(input);
-                var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
-                var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
-                var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
-                //Perform the analysis
-                analyzer.Analyze(function(err) {
-                    //Check for analysis error
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        //Store the concepts that were found
-                        var concepts = conceptExtractor.GetConcepts();
-                        var keywords = keywordExtractor.GetKeywords();
-                        var entities = entityExtractor.GetEntities();
-                        //Determine whether any concepts were found
-                        if (concepts.length > 0) {
-                            console.log("Concepts Detected: " + concepts);
-                            //Associate these concepts with this user session
-                            database.tables.sessions.AddChatConcepts(chatbotData.sessionId, concepts, function (error) {
-                                //Log any errors
-                                if (error) {
-                                    console.log(error);
-                                }
-                            });
+                if (input != null) {
+                    //Analyze the user input
+                    var analyzer = new TextAnalyzer(input);
+                    var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
+                    var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
+                    var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
+                    //Perform the analysis
+                    analyzer.Analyze(function(err) {
+                        //Check for analysis error
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            //Store the concepts that were found
+                            var concepts = conceptExtractor.GetConcepts();
+                            var keywords = keywordExtractor.GetKeywords();
+                            var entities = entityExtractor.GetEntities();
+                            //Determine whether any concepts were found
+                            if (concepts.length > 0) {
+                                console.log("Concepts Detected: " + concepts);
+                                //Associate these concepts with this user session
+                                database.tables.sessions.AddChatConcepts(chatbotData.sessionId, concepts, function (error) {
+                                    //Log any errors
+                                    if (error) {
+                                        console.log(error);
+                                    }
+                                });
+                            }
+                            //Determine whether any keywords were found
+                            if (keywords.length > 0) {
+                                console.log("Keywords Detected: " + keywords);
+                                //Associate these keywords with this user session
+                                database.tables.sessions.AddChatKeywords(chatbotData.sessionId, keywords, function(error) {
+                                    //Log any errors
+                                    if (error) {
+                                        console.log(error);
+                                    }
+                                });
+                            }
+                            //Determine whether any entities were found
+                            if (entities.length > 0) {
+                                console.log("Entities Detected: " + entities);
+                                //Associate these entities with this user session
+                                database.tables.sessions.AddChatEntities(chatbotData.sessionId, entities, function(error) {
+                                    //Log any errors
+                                    if (error) {
+                                        console.log(error);
+                                    }
+                                });
+                            }
                         }
-                        //Determine whether any keywords were found
-                        if (keywords.length > 0) {
-                            console.log("Keywords Detected: " + keywords);
-                            //Associate these keywords with this user session
-                            database.tables.sessions.AddChatKeywords(chatbotData.sessionId, keywords, function(error) {
-                                //Log any errors
-                                if (error) {
-                                    console.log(error);
-                                }
-                            });
-                        }
-                        //Determine whether any entities were found
-                        if (entities.length > 0) {
-                            console.log("Entities Detected: " + entities);
-                            //Associate these entities with this user session
-                            database.tables.sessions.AddChatEntities(chatbotData.sessionId, entities, function(error) {
-                                //Log any errors
-                                if (error) {
-                                    console.log(error);
-                                }
-                            });
-                        }
-                    }
-                });
+                    });
+                }
             }
         });
     } else {
@@ -229,24 +232,24 @@ express.post('/analyzefacebook', function (req, res) {
     var userToken = req.body.token;
     var sessionID = req.body.session_id;
     //var userToken = 'EAACEdEose0cBAJe2EDMcUk5C7UlY1k2a3SR3yoIj5aJZAPkKcQhxODHGmtPOf29SNustjj5yKaQnGLz47kMShQyE7T1341iWbYrqy8nJpTReUGeCaZBZCPEWR9ZAMbtbN2gAEySFzo8ZBP4c7R2ziAuagXdKRiRb2kHsONHX92PuizIOlAItsPut4WAcpu2WcYF9ZBbE6IDAZDZD'
-    var postsArray;
     //var sessionID = 0;
     //url = 'https://graph.facebook.com/me/posts'
     //Authorize with access token
     FB.setAccessToken(userToken);
     //Get posts
-    FB.api('me/posts', { access_token: userToken },function (res) {
-        if (!res || res.error) {
-            console.log(!res ? 'error occurred' : res.error);
-            return;
+    FB.api('me/posts', { access_token: userToken }, function(fbRes) {
+        if (!fbRes || fbRes.error) {
+            console.log(!fbRes ? 'error occurred' : fbRes.error);
+        } else {
+            res.send(JSON.stringify({
+                success: true
+            }));
+            var postsArray = fbRes.data;
+            console.log(postsArray)
+            GetConceptsFromPosts(postsArray,sessionID);
+            console.log(fbRes.data);
         }
-        postsArray = res.data;
-        console.log(postsArray)
-        GetConceptsFromPosts(postsArray,sessionID);
-        console.log(res.data);
-        
     });
-
 });
 
 express.post('/facebookresults', function (req, res) {
@@ -302,56 +305,53 @@ function GetConceptsFromPosts(postsArray, sessionID) {
             concatPosts = concatPosts + " / " + singlePost.message
         }
     }
-            var analyzer = new TextAnalyzer(concatPosts);
-            var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
-            var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
-            var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
+    var analyzer = new TextAnalyzer(concatPosts);
+    var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
+    var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
+    var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
 
-            analyzer.Analyze(function (err) {
-                //Check for analysis error
-                if (err) {
-                    console.log(err);
-                } else {
-                    //Store the concepts that were found
-                    var concepts = conceptExtractor.GetConcepts();
-                    var keywords = keywordExtractor.GetKeywords();
-                    var entities = entityExtractor.GetEntities();
-                    //Determine whether any concepts were found
-                    if (concepts.length > 0) {
-                        console.log("Concepts Detected: " + concepts);
-                        //Associate these concepts with this user session
-                        database.tables.sessions.AddFacebookConcepts(sessionID, concepts, function (error) {
-                            //Log any errors
-                            if (error) {
-                                console.log(error);
-                            }
-                        });
+    analyzer.Analyze(function (err) {
+        //Check for analysis error
+        if (err) {
+            console.log(err);
+        } else {
+            //Store the concepts that were found
+            var concepts = conceptExtractor.GetConcepts();
+            var keywords = keywordExtractor.GetKeywords();
+            var entities = entityExtractor.GetEntities();
+            //Determine whether any concepts were found
+            if (concepts.length > 0) {
+                console.log("Concepts Detected: " + concepts);
+                //Associate these concepts with this user session
+                database.tables.sessions.AddFacebookConcepts(sessionID, concepts, function (error) {
+                    //Log any errors
+                    if (error) {
+                        console.log(error);
                     }
-                    //Determine whether any keywords were found
-                    if (keywords.length > 0) {
-                        console.log("Keywords Detected: " + keywords);
-                        //Associate these keywords with this user session
-                        database.tables.sessions.AddChatKeywords(sessionID, keywords, function (error) {
-                            //Log any errors
-                            if (error) {
-                                console.log(error);
-                            }
-                        });
+                });
+            }
+            //Determine whether any keywords were found
+            if (keywords.length > 0) {
+                console.log("Keywords Detected: " + keywords);
+                //Associate these keywords with this user session
+                database.tables.sessions.AddFacebookKeywords(sessionID, keywords, function (error) {
+                    //Log any errors
+                    if (error) {
+                        console.log(error);
                     }
-                    //Determine whether any entities were found
-                    if (entities.length > 0) {
-                        console.log("Entities Detected: " + entities);
-                        //Associate these entities with this user session
-                        database.tables.sessions.AddFacebookEntities(sessionID, entities, function (error) {
-                            //Log any errors
-                            if (error) {
-                                console.log(error);
-                            }
-                        });
+                });
+            }
+            //Determine whether any entities were found
+            if (entities.length > 0) {
+                console.log("Entities Detected: " + entities);
+                //Associate these entities with this user session
+                database.tables.sessions.AddFacebookEntities(sessionID, entities, function (error) {
+                    //Log any errors
+                    if (error) {
+                        console.log(error);
                     }
-                }
-            });
-        
-        
-    
+                });
+            }
+        }
+    });
 }
