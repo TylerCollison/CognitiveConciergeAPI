@@ -22,7 +22,7 @@ function GenerateQueryString(queryMap) {
         //Determine whether the term has any arguments
         if (queryMap[key] != "") {
             var value = queryMap[key].substr(0, queryMap[key].length - 1); //Process the query term arguments
-            result = result +  key + ":(" + value + "),"; //Insert the query term and arguments into the query string
+            result = result +  key + ":(" + value + ")|"; //Insert the query term and arguments into the query string
         }
     }
     return result.substr(0, result.length - 1); //Removing trailing comma

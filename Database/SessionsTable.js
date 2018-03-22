@@ -58,7 +58,7 @@ class SessionsTable {
 
     /**
      * Add a list of keywords to a session
-     * @param {The ID of the session to add the concepts to} sessionId 
+     * @param {The ID of the session to add the keywords to} sessionId 
      * @param {The keywords to add to the session} keywords 
      * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
      */
@@ -68,7 +68,7 @@ class SessionsTable {
 
     /**
      * Add a list of entities to a session
-     * @param {The ID of the session to add the concepts to} sessionId 
+     * @param {The ID of the session to add the entities to} sessionId 
      * @param {The entities to add to the session} entities 
      * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
      */
@@ -88,7 +88,7 @@ class SessionsTable {
 
     /**
      * Add a list of keywords to a session
-     * @param {The ID of the session to add the concepts to} sessionId 
+     * @param {The ID of the session to add the keywords to} sessionId 
      * @param {The keywords to add to the session} keywords 
      * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
      */
@@ -98,12 +98,42 @@ class SessionsTable {
 
     /**
      * Add a list of entities to a session
-     * @param {The ID of the session to add the concepts to} sessionId 
+     * @param {The ID of the session to add the entities to} sessionId 
      * @param {The entities to add to the session} entities 
      * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
      */
     AddFacebookEntities(sessionId, entities, callback) {
         this.UpdateItem(sessionId, { FacebookEntities: entities }, callback);
+    }
+
+    /**
+     * Add a list of concepts to a session
+     * @param {The ID of the session to add the concepts to} sessionId 
+     * @param {The concepts to add to the session} concepts 
+     * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
+     */
+    AddTwitterConcepts(sessionId, concepts, callback) {
+        this.UpdateItem(sessionId, { TwitterConcepts: concepts }, callback);
+    }
+
+    /**
+     * Add a list of keywords to a session
+     * @param {The ID of the session to add the keywords to} sessionId 
+     * @param {The keywords to add to the session} keywords 
+     * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
+     */
+    AddTwitterKeywords(sessionId, keywords, callback) {
+        this.UpdateItem(sessionId, { TwitterKeywords: keywords }, callback);
+    }
+
+    /**
+     * Add a list of entities to a session
+     * @param {The ID of the session to add the entities to} sessionId 
+     * @param {The entities to add to the session} entities 
+     * @param {Callback function called at the conclusion of adding the concepts; has one parameter: error, which contains any error information} callback 
+     */
+    AddTwitterEntities(sessionId, entities, callback) {
+        this.UpdateItem(sessionId, { TwitterEntities: entities }, callback);
     }
 }
 
