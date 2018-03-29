@@ -26,6 +26,13 @@ const database = Database.GetInstance();
 var session = require("express-session"),
     bodyParser = require("body-parser");
 
+//Initialize twitter
+var Twitter = require('twitter');
+
+var twitterClient = new Twitter({
+  consumer_key: 'ZLldcJNuG39U0des5ezmoFeHO',
+  consumer_secret: 'nKL1YRyD3bBVNmTHpo6cRBgNr9a64C6wkqov0IEXJHGnhU2uz4'
+});
 
 
 /**
@@ -92,6 +99,15 @@ express.post('/match', (req, res) => {
                 if (data.FacebookEntities) {
                     //TODO: remove the Concept Set at the database level
                     explorer.AddSearchEntities(data.FacebookEntities.values); //Add the entities 
+                }
+				if (data.TwitterConcepts) {
+                    explorer.AddSearchConcepts(data.TwitterConcepts.values); //Add the concepts
+                }
+				if (data.TwitterKeywords) {
+                    explorer.AddSearchKeywords(data.TwitterKeywords.values); //Add the keywords
+                }
+				if (data.TwitterEntities) {
+                    explorer.AddSearchEntities(data.TwitterEntities.values); //Add the entities 
                 }
                 //Search for locations based on the supplied parameters
                 explorer.Search(function(err, data) {
@@ -355,3 +371,139 @@ function GetConceptsFromPosts(postsArray, sessionID) {
         }
     });
 }
+
+function GetConceptsFromTweets(postsArray, sessionID) {
+    var concatPosts = "";
+    for (var i = 0; i < postsArray.length; i++) {
+        var singlePost = postsArray[i];
+        if (singlePost.hasOwnProperty('text')) {
+            concatPosts = concatPosts + " / " + singlePost.text
+        }
+    }
+    var analyzer = new TextAnalyzer(concatPosts);
+    var conceptExtractor = new analyzer.ConceptExtractor(); //Extract concepts
+    var keywordExtractor = new analyzer.KeywordExtractor(); //Extract keywords
+    var entityExtractor = new analyzer.EntityExtractor(); //Extract entities
+
+    analyzer.Analyze(function (err) {
+        //Check for analysis error
+        if (err) {
+            console.log(err);
+        } else {
+            //Store the concepts that were found
+            var concepts = conceptExtractor.GetConcepts();
+            var keywords = keywordExtractor.GetKeywords();
+            var entities = entityExtractor.GetEntities();
+            //Determine whether any concepts were found
+            if (concepts.length > 0) {
+                console.log("Concepts Detected: " + concepts);
+                //Associate these concepts with this user session
+                database.tables.sessions.AddTwitterConcepts(sessionID, concepts, function (error) {
+                    //Log any errors
+                    if (error) {
+                        console.log(error);
+                    }
+                });
+            }
+            //Determine whether any keywords were found
+            if (keywords.length > 0) {
+                console.log("Keywords Detected: " + keywords);
+                //Associate these keywords with this user session
+                database.tables.sessions.AddTwitterKeywords(sessionID, keywords, function (error) {
+                    //Log any errors
+                    if (error) {
+                        console.log(error);
+                    }
+                });
+            }
+            //Determine whether any entities were found
+            if (entities.length > 0) {
+                console.log("Entities Detected: " + entities);
+                //Associate these entities with this user session
+                database.tables.sessions.AddTwitterEntities(sessionID, entities, function (error) {
+                    //Log any errors
+                    if (error) {
+                        console.log(error);
+                    }
+                });
+            }
+        }
+    });
+}
+
+express.post('/twitterresults', function (req, res) {
+    console.log("Getting twitter results...");
+    var sessionId = req.body.session_id;
+
+    if (typeof (sessionId) != 'undefined') {
+        //Search the database for the supplied session information
+        database.tables.sessions.GetItem(sessionId, function (err, data) {
+            //Determine whether there was an internal error
+            if (err || typeof (data) === 'undefined') {
+                if (err) {
+                    console.log(err);
+                }
+                res.send(JSON.stringify({
+                    concepts: [],
+                    keywords: [],
+                    entities: []
+                }));
+            } else {
+                //Respond with the matching location data
+                res.send(JSON.stringify({
+                    concepts: data.TwitterConcepts ? data.TwitterConcepts.values : [],
+                    keywords: data.TwitterKeywords ? data.TwitterKeywords.values : [],
+                    entities: data.TwitterEntities ? data.TwitterEntities.values : []
+                }));
+            }
+        });
+    } else {
+        //Throw an error if the request was malformed
+        console.log("Malformed request");
+        res.status(400).send("ERROR: Bad request");
+    }
+
+});
+
+express.post('/analyzetwitter', function (req, res){
+	console.log("Getting twitter results...");
+	//Get userToken and sessionID from the client
+    var userToken = req.body.token;
+    var sessionID = req.body.session_id;
+	var UserID = NotARealName543
+	
+	
+    //Get tweets
+    twitterClient.get('statuses/user_timeline', {q: 'node.js', screen_name:UserID}, function(error, result, response) {
+        if (!response || error) {
+            console.log(!fbRes ? 'error occurred' : error);
+        } else {
+            res.send(JSON.stringify({
+                success: true
+            }));
+			COnsole.log(result.data)
+            var postsArray = result.data;
+            console.log(postsArray)
+            GetConceptsFromTweets(postsArray,sessionID);
+            
+			//Try some pagination stuff. First API call runs without a cursor parameter. If it is not paginated, rerun the api call until there is no pages(cursor is null)
+			var current_cursor = result.next_cursor
+			while(!current_cursor){
+				twitterClient.get('statuses/home_timeline', {q: 'node.js',cursor:current_cursor}, function(error, result, response) {
+					if (!response || error) {
+						console.log(!fbRes ? 'error occurred' : error);
+					} else {
+						res.send(JSON.stringify({
+							success: true
+					}));
+					current_cursor = result.next_cursor
+					postsArray = result.data;
+					console.log(postsArray)
+					GetConceptsFromTweets(postsArray,sessionID);
+					}
+				});
+			}
+		}
+	});
+});
+	
