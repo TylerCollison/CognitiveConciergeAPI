@@ -30,8 +30,10 @@ var session = require("express-session"),
 var Twitter = require('twitter');
 
 var twitterClient = new Twitter({
-  consumer_key: 'ZLldcJNuG39U0des5ezmoFeHO',
-  consumer_secret: 'nKL1YRyD3bBVNmTHpo6cRBgNr9a64C6wkqov0IEXJHGnhU2uz4'
+  consumer_key: 'HW2YG8w5MwTFXVjHv6D9XTTLA',
+  consumer_secret: 'XF5YFPEWffk8uFa6ERuEWwzPC8xkFuMguBq3Pc74bnuZgIGoKi',
+  access_token_key: ' 976868791874408448-TMNBEf3qyWOk3wF9Sr0iyDBWqRs3gny',
+  access_token_secret: 'wrmuZX76XXVx1lf0XGon6L7h2SnchRvYzcdWb4ZVn8pKd'
 });
 
 
@@ -470,13 +472,13 @@ express.post('/analyzetwitter', function (req, res){
 	//Get userToken and sessionID from the client
     var userToken = req.body.token;
     var sessionID = req.body.session_id;
-	var UserID = NotARealName543
+	var UserID = 'NotARealName543'
 	
 	
     //Get tweets
     twitterClient.get('statuses/user_timeline', {q: 'node.js', screen_name:UserID}, function(error, result, response) {
         if (!response || error) {
-            console.log(!fbRes ? 'error occurred' : error);
+            console.log(!result ? 'error occurred' : error);
         } else {
             res.send(JSON.stringify({
                 success: true
