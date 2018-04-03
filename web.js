@@ -16,8 +16,72 @@ express.use(bp.json({type: 'application/json'}));
 //Setup HTTP server
 var server = http.createServer(express);
 
-//Create a new chatbot
+//Create a new chatbot and add action handlers
 const chatbot = new ChatBot();
+
+/**
+ * Gets a random feature of a specified type from the specified session
+ * @param {The id of the session to which the feature belongs} sessionId
+ * @param {The type of the feature to retrieve} featureName
+ * @param {Callback called upon completion of retrieval, which takes the result as a parameter} cb 
+ */
+function getSessionFeature(sessionId, featureName, cb) {
+    //Search the database for the supplied session information
+    database.tables.sessions.GetItem(sessionId, function(err, data) {
+        //Determine whether there was an internal error
+        if (err || typeof(data) === 'undefined') {
+            if (err) {
+                console.log(err);
+            }
+            cb(null);
+        } else {
+            //Determine whether there are any concepts associated with the session
+            if (data[featureName] && data[featureName].values.length > 0) {
+                var index = Math.floor(Math.random() * data[featureName].values.length);
+                cb(data[featureName].values[index]);
+            } else {
+                cb(null);
+            }
+        }
+    });
+}
+
+//Add actions handlers to the chatbot
+chatbot.addGetChatConceptHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "ChatConcepts", cb);
+});
+
+chatbot.addGetChatEntityHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "ChatEntities", cb);
+});
+
+chatbot.addGetChatKeywordHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "ChatKeywords", cb);
+});
+
+chatbot.addGetFacebookConceptHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "FacebookConcepts", cb);
+});
+
+chatbot.addGetFacebookEntityHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "FacebookEntities", cb);
+});
+
+chatbot.addGetFacebookKeywordHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "FacebookKeywords", cb);
+});
+
+chatbot.addGetTwitterConceptHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "TwitterConcepts", cb);
+});
+
+chatbot.addGetTwitterEntityHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "TwitterEntities", cb);
+});
+
+chatbot.addGetTwitterKeywordHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "TwitterKeywords", cb);
+});
 
 //Get the database singleton
 const database = Database.GetInstance();
@@ -26,23 +90,78 @@ const database = Database.GetInstance();
 var session = require("express-session"),
     bodyParser = require("body-parser");
 
-
-
 /**
     "Request" : {
         "session_id" : ""
     }
 
     "Response" : {
-        "match_count": COUNT,
-        "matches" : [
-            {
-                "id" : "LOCATION_ID",
-                "location" : "LOCATION_STRING",
-                "description" : "LOCATION_DESCRIPTION", 
-                "confidence" : "CONFIDENCE_VALUE"
-            }
-        ]
+        "africa" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
+        "eruope" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
+        "asia" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
+        "north_america" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
+        "south_america" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
+        "australia" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
     }
  */
 express.post('/match', (req, res) => {
@@ -159,10 +278,10 @@ express.post('/conversation', (req, res) => {
                             console.log(err);
                         } else {
                             //Store the concepts that were found
-                            var concepts = conceptExtractor.GetConcepts();
-                            var keywords = keywordExtractor.GetKeywords();
+                            var concepts = conceptExtractor.GetConcepts(0.85);
+                            var keywords = keywordExtractor.GetKeywords(0.50);
                             var entities = entityExtractor.GetEntities();
-                            //Determine whether any concepts were found
+                            //Determine whether any concepts were found 
                             if (concepts.length > 0) {
                                 console.log("Concepts Detected: " + concepts);
                                 //Associate these concepts with this user session
@@ -316,8 +435,8 @@ function GetConceptsFromPosts(postsArray, sessionID) {
             console.log(err);
         } else {
             //Store the concepts that were found
-            var concepts = conceptExtractor.GetConcepts();
-            var keywords = keywordExtractor.GetKeywords();
+            var concepts = conceptExtractor.GetConcepts(0.85);
+            var keywords = keywordExtractor.GetKeywords(0.50);
             var entities = entityExtractor.GetEntities();
             //Determine whether any concepts were found
             if (concepts.length > 0) {
