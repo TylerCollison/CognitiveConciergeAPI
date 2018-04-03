@@ -135,6 +135,25 @@ class SessionsTable {
     AddTwitterEntities(sessionId, entities, callback) {
         this.UpdateItem(sessionId, { TwitterEntities: entities }, callback);
     }
+	
+	/**
+	 *Add user email, profile id, twitter token and token secret to the associated chat record
+	 */
+	AddTwitterUserEmail(sessionId, profile, callback){
+		this.UpdateItem(sessionId, profile.emails[0].value, callback);
+	}
+	
+	AddTwitterUserID(sessionId, profile, callback){
+		this.UpdateItem(sessionId, profile.id, callback);
+	}
+	
+	AddTwitterUserToken(sessionId, token, callback){
+		this.UpdateItem(sessionId, token, callback);
+	}
+	
+	AddTwitterUserSecret(sessionId, secret, callback){
+		this.UpdateItem(sessionId, secret, callback);
+	}
 }
 
 module.exports = SessionsTable;
