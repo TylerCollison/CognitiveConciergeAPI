@@ -7,7 +7,7 @@ const ENTITY_IDENTIFIER = "enriched_text.entities.text";
 const KEYWORD_IDENTIFIER = "enriched_text.keywords.text";
 
 const AGGREGATOR = "nested(enriched_text.entities.disambiguation).filter(enriched_text.entities.disambiguation.subtype:(\"Location\"|\"GeographicFeature\"|\"City\"|\"Region\"|\"GovernmentalJurisdiction\"|\"StateOrCountry\"|\"PoliticalDistrict\"|\"BodyOfWater\"|\"USState\"|\"Kingdom\"|\"River\"|\"USCounty\"|\"Island\"|\"Lake\"|\"MountainRange\"|\"CityTown\"|\"Mountain\"|\"IslandGroup\"|\"IndianCity\"),enriched_text.entities.disambiguation.subtype::!(\"Country\"|\"Continent\")).term(enriched_text.entities.disambiguation.dbpedia_resource,count:20).term(enriched_text.entities.disambiguation.name,count:1)";
-const FILTER = "enriched_text.sentiment.document.label::!\"negative\",enriched_text.entities.type:\"Location\"|\"GeographicFeature\"";
+const FILTER = "enriched_text.sentiment.document.label::!\"negative\",enriched_text.entities.type:(\"Location\"|\"GeographicFeature\")";
 
 /**
  * Generates the query string used as input into the Watson Discovery Service from the given map
@@ -95,8 +95,8 @@ function AddDBPediaData(locations, cb) {
  * Searches for location information using supplied query information
  */
 class LocationExplorer {
-    constructor() {
-        this.client = new KnowledgeBase();
+    constructor(environmentId, collectionId, username, password) {
+        this.client = new KnowledgeBase(environmentId, collectionId, username, password);
         //Setup query terms
         this.queryMap = {};
         this.queryMap[CONCEPT_IDENTIFIER] = "";
