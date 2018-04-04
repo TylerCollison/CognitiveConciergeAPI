@@ -6,7 +6,7 @@ const bp = require("body-parser");
 const ChatBot = require("./ChatBot/WatsonConversation");
 const TextAnalyzer = require("./Analysis/WatsonTextAnalyzer");
 const Database = require("./Database/database");
-const LocationExplorer = require("./KnowledgeSystem/LocationExplorer");
+const LocationExplorer = require("./KnowledgeSystem/ContinentLocationExplorer");
 const FB = require('fb');
 var fb = new FB.Facebook();
 //Setup express layer
@@ -107,7 +107,7 @@ var session = require("express-session"),
                 }
             ]
         }
-        "eruope" : {
+        "europe" : {
             "match_count": COUNT,
             matches: [
                 {
@@ -181,8 +181,7 @@ express.post('/match', (req, res) => {
                     matches: []
                 }));
             } else {
-                var explorer = new LocationExplorer(); //Create a new location explorer
-                //Determine whether there are any concepts associated with the session
+                var explorer = new LocationExplorer("2e9f9764-ad0d-4f1e-aeab-3382092f2d44", "dd43db89-6a87-462f-8ab9-69c288e96d51", "656dc01d-2559-4d36-90f8-6df0b17d8ff4", "yX1lHWcfkFRx");
                 if (data.ChatConcepts) {
                     //TODO: remove the Concept Set at the database level
                     explorer.AddSearchConcepts(data.ChatConcepts.values); //Add the concepts 
@@ -218,10 +217,7 @@ express.post('/match', (req, res) => {
                         console.log(err);
                     } else {
                         //Respond with the matching location data
-                        res.send(JSON.stringify({
-                            match_count: data.length, 
-                            matches: data
-                        }));
+                        res.send(JSON.stringify(data));
                     }
                 });
             }
