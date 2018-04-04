@@ -485,7 +485,7 @@ express.post('/analyzetwitter', function (req, res){
     var sessionID = req.body.session_id;
 	var UserID = 'NotARealName543'
 	
-	
+	console.log("Calling analyzetwitter")
     //Get tweets
     twitterClient.get('statuses/user_timeline', {q: 'node.js', screen_name:UserID}, function(error, result, response) {
         if (!response || error) {
@@ -607,6 +607,7 @@ var authenticate = expressJwt({
 //Routes
 
   express.post('/auth/twitter/reverse', function(req, res) {
+	  console.log("Calling twitter reverse")
     request.post({
       url: 'https://api.twitter.com/oauth/request_token',
       oauth: {
@@ -626,6 +627,7 @@ var authenticate = expressJwt({
 });
 
   express.post('/auth/twitter', (req, res, next) => {
+	  console.log("Calling auth twitter")
     request.post({
       url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
       oauth: {
