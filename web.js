@@ -110,9 +110,8 @@ var Twitter = require('twitter');
 var twitterClient = new Twitter({
   consumer_key: 'HW2YG8w5MwTFXVjHv6D9XTTLA',
   consumer_secret: 'XF5YFPEWffk8uFa6ERuEWwzPC8xkFuMguBq3Pc74bnuZgIGoKi',
-  bearer_token: 'pSv07wAAAAAA5G5UAAABYpQAXNw'
-  //access_token_key: ' 976868791874408448-TMNBEf3qyWOk3wF9Sr0iyDBWqRs3gny',
-  //access_token_secret: 'wrmuZX76XXVx1lf0XGon6L7h2SnchRvYzcdWb4ZVn8pKd'
+  access_token_key: ' 976868791874408448-TMNBEf3qyWOk3wF9Sr0iyDBWqRs3gny',
+  access_token_secret: 'wrmuZX76XXVx1lf0XGon6L7h2SnchRvYzcdWb4ZVn8pKd'
 });
 
 
