@@ -728,12 +728,12 @@ var authenticate = expressJwt({
 
 //Routes
 
-  express.post('/auth/twitter/reverse', function(req, res) {
+  express.post('/api/auth/twitter/reverse', function(req, res) {
 	  console.log("Calling twitter reverse")
     request.post({
       url: 'https://api.twitter.com/oauth/request_token',
       oauth: {
-        oauth_callback: 'http%3A%2F%2Flocalhost%3A3000%2Ftwitter-callback',
+        oauth_callback: "http%3A%2F%2Flocalhost%3A3000%2Ftwitter-callback",
         consumer_key: 'HW2YG8w5MwTFXVjHv6D9XTTLA',
         consumer_secret: 'XF5YFPEWffk8uFa6ERuEWwzPC8xkFuMguBq3Pc74bnuZgIGoKi'
       }
@@ -742,21 +742,22 @@ var authenticate = expressJwt({
         return res.send(500, { message: err.message });
       }
 
-	  console.log(jsonStr)
       var jsonStr = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
       res.send(JSON.parse(jsonStr));
     });
 });
 
-  express.post('/auth/twitter', (req, res, next) => {
+  express.post('/api/auth/twitter', (req, res, next) => {
+	  console.log("Calling twitter token auth")
     request.post({
-      url: 'https://api.twitter.com/oauth/access_token?oauth_verifier',
+      url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
+	  headers: {oauth_verifier: req.query.oauth_verifier}, 
       oauth: {
         consumer_key: 'HW2YG8w5MwTFXVjHv6D9XTTLA',
         consumer_secret: 'XF5YFPEWffk8uFa6ERuEWwzPC8xkFuMguBq3Pc74bnuZgIGoKi',
         token: req.query.oauth_token
       },
-      //form: { oauth_verifier: req.query.oauth_verifier }
+      form: { oauth_verifier: req.query.oauth_verifier }
     }, function (err, r, body) {
       if (err) {
         return res.send(500, { message: err.message });
