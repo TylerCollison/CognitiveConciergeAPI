@@ -92,7 +92,7 @@ const database = Database.GetInstance();
 var session = require("express-session"),
     bodyParser = require("body-parser");
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 // enable cors
 var cors = require('cors')
 
@@ -110,13 +110,14 @@ var Twitter = require('twitter');
 var twitterClient = new Twitter({
   consumer_key: 'HW2YG8w5MwTFXVjHv6D9XTTLA',
   consumer_secret: 'XF5YFPEWffk8uFa6ERuEWwzPC8xkFuMguBq3Pc74bnuZgIGoKi',
-  access_token_key: ' 976868791874408448-TMNBEf3qyWOk3wF9Sr0iyDBWqRs3gny',
-  access_token_secret: 'wrmuZX76XXVx1lf0XGon6L7h2SnchRvYzcdWb4ZVn8pKd'
+  bearer_token: 'pSv07wAAAAAA5G5UAAABYpQAXNw'
+  //access_token_key: ' 976868791874408448-TMNBEf3qyWOk3wF9Sr0iyDBWqRs3gny',
+  //access_token_secret: 'wrmuZX76XXVx1lf0XGon6L7h2SnchRvYzcdWb4ZVn8pKd'
 });
 
 
-=======
->>>>>>> refs/remotes/origin/master
+//=======
+//>>>>>>> refs/remotes/origin/master
 /**
     "Request" : {
         "session_id" : ""
@@ -733,7 +734,7 @@ var authenticate = expressJwt({
     request.post({
       url: 'https://api.twitter.com/oauth/request_token',
       oauth: {
-        oauth_callback: "http%3A%2F%2Flocalhost%3A3000%2Ftwitter-callback",
+        oauth_callback: 'http%3A%2F%2Flocalhost%3A3000%2Ftwitter-callback',
         consumer_key: 'HW2YG8w5MwTFXVjHv6D9XTTLA',
         consumer_secret: 'XF5YFPEWffk8uFa6ERuEWwzPC8xkFuMguBq3Pc74bnuZgIGoKi'
       }
@@ -742,16 +743,15 @@ var authenticate = expressJwt({
         return res.send(500, { message: err.message });
       }
 
+	  console.log(jsonStr)
       var jsonStr = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
-	  console.log(JSON.parse(jsonStr))
       res.send(JSON.parse(jsonStr));
     });
 });
 
   express.post('/auth/twitter', (req, res, next) => {
-	  console.log("Calling auth twitter")
     request.post({
-      url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
+      url: 'https://api.twitter.com/oauth/access_token?oauth_verifier',
       oauth: {
         consumer_key: 'HW2YG8w5MwTFXVjHv6D9XTTLA',
         consumer_secret: 'XF5YFPEWffk8uFa6ERuEWwzPC8xkFuMguBq3Pc74bnuZgIGoKi',
