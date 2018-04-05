@@ -6,8 +6,14 @@ const CONCEPT_IDENTIFIER = "enriched_text.concepts.text";
 const ENTITY_IDENTIFIER = "enriched_text.entities.text";
 const KEYWORD_IDENTIFIER = "enriched_text.keywords.text";
 
-const AGGREGATOR = "nested(enriched_text.entities.disambiguation).filter(enriched_text.entities.disambiguation.subtype:(\"Location\"|\"GeographicFeature\"|\"City\"|\"Region\"|\"GovernmentalJurisdiction\"|\"StateOrCountry\"|\"PoliticalDistrict\"|\"BodyOfWater\"|\"USState\"|\"Kingdom\"|\"River\"|\"USCounty\"|\"Island\"|\"Lake\"|\"MountainRange\"|\"CityTown\"|\"Mountain\"|\"IslandGroup\"|\"IndianCity\"),enriched_text.entities.disambiguation.subtype::!(\"Country\"|\"Continent\")).term(enriched_text.entities.disambiguation.dbpedia_resource,count:20).term(enriched_text.entities.disambiguation.name,count:1)";
-const FILTER = "enriched_text.sentiment.document.label::!\"negative\",enriched_text.entities.type:(\"Location\"|\"GeographicFeature\")";
+const DEST_AGGREGATOR = "nested(enriched_text.entities.disambiguation).filter(enriched_text.entities.disambiguation.subtype:(\"Location\"|\"GeographicFeature\"|\"City\"|\"Region\"|\"GovernmentalJurisdiction\"|\"StateOrCountry\"|\"PoliticalDistrict\"|\"BodyOfWater\"|\"USState\"|\"Kingdom\"|\"River\"|\"USCounty\"|\"Island\"|\"Lake\"|\"MountainRange\"|\"CityTown\"|\"Mountain\"|\"IslandGroup\"|\"IndianCity\"),enriched_text.entities.disambiguation.subtype::!(\"Country\"|\"Continent\")).term(enriched_text.entities.disambiguation.dbpedia_resource,count:20).term(enriched_text.entities.disambiguation.name,count:1)";
+const POI_AGGREGATOR = "nested(enriched_text.entities).filter(enriched_text.entities.disambiguation.subtype:(\"Sports Facility\"|\"HallOfFame\"|\"Historic Place\"|\"Museum\"|\"Park\"|\"Theater\"|\"ShoppingCenter\")).term(enriched_text.entities.text,count:20)";
+const ACT_AGGREGATOR = "nested(enriched_text.entities).filter(enriched_text.entities.type:(\"Hobby\"|\"Sport\")).term(enriched_text.entities.text,count:20)";
+const MEDIA_AGGREGATOR = "[nested(enriched_text.entities).filter(enriched_text.entities.disambiguation.subtype:(\"SportsAssociation\"|\"SportsTeam\")).term(enriched_text.entities.text,count:10),nested(enriched_text.entities).filter(enriched_text.entities.disambiguation.subtype:(\"Comedian\"|\"Composer\"|\"Actor\")).term(enriched_text.entities.text,count:10)]";
+const VOLUNTEER_AGGREGATOR = "nested(enriched_text.entities).filter(enriched_text.entities.disambiguation.subtype:(\"Non-ProfitOrganisation\")).term(enriched_text.entities.text,count:20)";
+const ATTRACTION_AGGREGATOR = "nested(enriched_text.entities).filter(enriched_text.entities.disambiguation.subtype:(\"TouristAttraction\")).term(enriched_text.entities.text,count:20)";
+
+const FILTER = "";
 
 /**
  * Generates the query string used as input into the Watson Discovery Service from the given map
@@ -34,7 +40,7 @@ function GenerateQueryString(queryMap) {
  * 
  * @return {An array of location objects}
  */
-function ExtractResults(response) {
+function ExtractDestinationResults(response) {
     var results = [];
     //Process each top-level aggregation
     var aggregations = response.aggregations;
@@ -54,6 +60,26 @@ function ExtractResults(response) {
                     confidence: Math.random() //TODO: replace this with meaningful confidence
                 });
             }
+        }
+    }
+    return results;
+}
+
+/**
+ * Extracts properly formatted entity results from the Watson Discovery response
+ * @param {Aggregate entity query response from Watson Discovery} response 
+ * 
+ * @return {An array of string results}
+ */
+function ExtractAggregateEntityResults(response) {
+    var results = [];
+    //Process each top-level aggregation
+    var aggregations = response.aggregations;
+    for (var i = 0; i < aggregations.length; i++) {
+        var originalResults = aggregations[i].aggregations[0].aggregations[0].results; //Store the results from Watson Discovery
+        //Process each Watson Discovery result
+        for (var j = 0; j < originalResults.length; j++) {
+            results.push(originalResults[j].key);
         }
     }
     return results;
@@ -138,7 +164,7 @@ class LocationExplorer {
      * Search for locations using added search terms
      * @param {Callback function called at the conclusion of the search; has two parameters: error and data, where error contains any error information and data is an array of location objects} callback 
      */
-    Search(callback) {
+    SearchDestinations(callback) {
         var queryString = GenerateQueryString(this.queryMap); //Generate the appropriate query string
         //Query the knowledge base for aggregation
         this.client.Query(queryString, 0, function(err, data) {
@@ -146,16 +172,101 @@ class LocationExplorer {
                 callback(err, null);
             } else {
                 //Add DBPedia data to the results
-                var results = ExtractResults(data);
-                AddDBPediaData(results, function(err, locations) {
-                    if (err) {
-                        callback(err, null);
+                var results = ExtractDestinationResults(data);
+                AddDBPediaData(results, function(error, locations) {
+                    if (error) {
+                        callback(error, null);
                     } else {
-                        callback(err, locations);
+                        callback(error, locations);
                     }
                 });
             }
-        }, null, FILTER, AGGREGATOR);
+        }, null, FILTER, DEST_AGGREGATOR);
+    }
+
+    /**
+     * Search for points of interest using added search terms
+     * @param {Callback function called at the conclusion of the search; has two parameters: error and data, where error contains any error information and data is an array of location objects} callback 
+     */
+    SearchPointsOfInterest(callback) {
+        var queryString = GenerateQueryString(this.queryMap); //Generate the appropriate query string
+        //Query the knowledge base for aggregation
+        this.client.Query(queryString, 0, function(err, data) {
+            if (err) {
+                callback(err, null);
+            } else {
+                var results = ExtractAggregateEntityResults(data);
+                callback(err, results);
+            }
+        }, null, FILTER, POI_AGGREGATOR);
+    }
+
+    /**
+     * Search for activities using added search terms
+     * @param {Callback function called at the conclusion of the search; has two parameters: error and data, where error contains any error information and data is an array of string results} callback 
+     */
+    SearchActivities(callback) {
+    var queryString = GenerateQueryString(this.queryMap); //Generate the appropriate query string
+        //Query the knowledge base for aggregation
+        this.client.Query(queryString, 0, function(err, data) {
+            if (err) {
+                callback(err, null);
+            } else {
+                var results = ExtractAggregateEntityResults(data);
+                callback(err, results);
+            }
+        }, null, FILTER, ACT_AGGREGATOR);
+    }
+
+    /**
+     * Search for media using added search terms
+     * @param {Callback function called at the conclusion of the search; has two parameters: error and data, where error contains any error information and data is an array of string results} callback 
+     */
+    SearchMedia(callback) {
+        var queryString = GenerateQueryString(this.queryMap); //Generate the appropriate query string
+        //Query the knowledge base for aggregation
+        this.client.Query(queryString, 0, function(err, data) {
+            if (err) {
+                callback(err, null);
+            } else {
+                var results = ExtractAggregateEntityResults(data);
+                callback(err, results);
+            }
+        }, null, FILTER, MEDIA_AGGREGATOR);
+    }
+
+    /**
+     * Search for volunteer organizations using added search terms
+     * @param {Callback function called at the conclusion of the search; has two parameters: error and data, where error contains any error information and data is an array of string results} callback 
+     */
+    SearchVolunteerOrganizations(callback) {
+        var queryString = GenerateQueryString(this.queryMap); //Generate the appropriate query string
+        //Query the knowledge base for aggregation
+        this.client.Query(queryString, 0, function(err, data) {
+            if (err) {
+                callback(err, null);
+            } else {
+                var results = ExtractAggregateEntityResults(data);
+                callback(err, results);
+            }
+        }, null, FILTER, VOLUNTEER_AGGREGATOR);
+    }
+
+    /**
+     * Search for tourist attractions using added search terms
+     * @param {Callback function called at the conclusion of the search; has two parameters: error and data, where error contains any error information and data is an array of string results} callback 
+     */
+    SearchTouristAttractions(callback) {
+        var queryString = GenerateQueryString(this.queryMap); //Generate the appropriate query string
+        //Query the knowledge base for aggregation
+        this.client.Query(queryString, 0, function(err, data) {
+            if (err) {
+                callback(err, null);
+            } else {
+                var results = ExtractAggregateEntityResults(data);
+                callback(err, results);
+            }
+        }, null, FILTER, ATTRACTION_AGGREGATOR);
     }
 }
 
