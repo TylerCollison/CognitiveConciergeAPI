@@ -8,7 +8,9 @@ const TextAnalyzer = require("./Analysis/WatsonTextAnalyzer");
 const Database = require("./Database/database");
 const LocationExplorer = require("./KnowledgeSystem/LocationExplorer");
 const FB = require('fb');
+const request = require('request');
 var fb = new FB.Facebook();
+
 //Setup express layer
 const express = new Express();
 express.use(bp.json({type: 'application/json'})); 
@@ -620,8 +622,8 @@ var authenticate = expressJwt({
         return res.send(500, { message: err.message });
       }
 
-
       var jsonStr = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
+	  console.log(JSON.parse(jsonStr))
       res.send(JSON.parse(jsonStr));
     });
 });
@@ -635,7 +637,7 @@ var authenticate = expressJwt({
         consumer_secret: 'XF5YFPEWffk8uFa6ERuEWwzPC8xkFuMguBq3Pc74bnuZgIGoKi',
         token: req.query.oauth_token
       },
-      form: { oauth_verifier: req.query.oauth_verifier }
+      //form: { oauth_verifier: req.query.oauth_verifier }
     }, function (err, r, body) {
       if (err) {
         return res.send(500, { message: err.message });
