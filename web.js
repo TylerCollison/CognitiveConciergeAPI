@@ -599,9 +599,8 @@ express.post('/twitterresults', function (req, res) {
 express.post('/analyzetwitter', function (req, res){
 	console.log("Getting twitter results...");
 	//Get userToken and sessionID from the client
-    var userToken = req.body.token;
     var sessionID = req.body.session_id;
-	var UserID = 'NotARealName543'
+	var UserID = database.tables.sessions.GetItem(sessionID, callback)
 	
 	console.log("Calling analyzetwitter")
     //Get tweets
