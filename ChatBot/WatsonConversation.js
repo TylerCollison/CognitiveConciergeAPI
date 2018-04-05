@@ -1,7 +1,7 @@
 const Conversation = require('watson-developer-cloud/conversation/v1');
 const cryptoEngine = require('../Cryptography/cryptoEngine');
 
-const WORKSPACE_ID = "ce837b8e-4b80-473f-b6ab-9c6f9efab88e"; //'d167dec0-a4db-474d-9b35-3b45ba7d563a';
+const WORKSPACE_ID = "0678439f-6a13-4439-8b78-555be83f5d1d"; //'d167dec0-a4db-474d-9b35-3b45ba7d563a';
 const USERNAME = "59c61159-ea01-451d-a38c-192eae1ee451";//"59c61159-ea01-451d-a38c-192eae1ee451";
 const PASSWORD = "eGUEh05mH1Km"; //"eGUEh05mH1Km";
 
@@ -96,72 +96,72 @@ class ChatBot {
      * Set the handler for getChatEntity actions
      * @param {The handler function to be called in response to the action request, which takes a parameter object} handler 
      */
-    addGetChatEntityHandler(handler) {
-        this.actionHandlers.getChatEntity = handler;
+    addGetEntityHandler(handler) {
+        this.actionHandlers.getEntity = handler;
     }
 
     /**
      * Set the handler for GetChatConcept actions
      * @param {The handler function to be called in response to the action request, which takes a parameter object} handler 
      */
-    addGetChatConceptHandler(handler) {
-        this.actionHandlers.getChatConcept = handler;
+    addGetConceptHandler(handler) {
+        this.actionHandlers.getConcept = handler;
     }
 
     /**
      * Set the handler for GetChatKeyword actions
      * @param {The handler function to be called in response to the action request, which takes a parameter object} handler 
      */
-    addGetChatKeywordHandler(handler) {
-        this.actionHandlers.getChatKeyword = handler;
+    addGetKeywordHandler(handler) {
+        this.actionHandlers.getKeyword = handler;
     }
 
     /**
-     * Set the handler for GetFacebookEntity actions
+     * Set the handler for GetPointOfInterest actions
      * @param {The handler function to be called in response to the action request, which takes a parameter object} handler 
      */
-    addGetFacebookEntityHandler(handler) {
-        this.actionHandlers.getFacebookEntity = handler;
+    addGetPointOfInterestHandler(handler) {
+        this.actionHandlers.getPointOfInterest = handler;
     }
 
     /**
-     * Set the handler for GetFacebookConcept actions
+     * Set the handler for GetActivity actions
      * @param {The handler function to be called in response to the action request, which takes a parameter object} handler 
      */
-    addGetFacebookConceptHandler(handler) {
-        this.actionHandlers.getFacebookConcept = handler;
+    addGetActivityHandler(handler) {
+        this.actionHandlers.getActivity = handler;
     }
 
     /**
-     * Set the handler for GetFacebookKeyword actions
+     * Set the handler for GetMediaHandler actions
      * @param {The handler function to be called in response to the action request, which takes a parameter object} handler 
      */
-    addGetFacebookKeywordHandler(handler) {
-        this.actionHandlers.getFacebookKeyword = handler;
+    addGetMediaHandler(handler) {
+        this.actionHandlers.getMedia = handler;
     }
 
     /**
-     * Set the handler for GetTwitterEntity actions
+     * Set the handler for GetVolunteerOrg actions
      * @param {The handler function to be called in response to the action request, which takes a parameter object} handler 
      */
-    addGetTwitterEntityHandler(handler) {
-        this.actionHandlers.getTwitterEntity = handler;
+    addGetVolunteerOrgHandler(handler) {
+        this.actionHandlers.getVolunteerOrg = handler;
     }
 
     /**
-     * Set the handler for GetTwitterConcept actions
+     * Set the handler for GetAttraction actions
      * @param {The handler function to be called in response to the action request, which takes a parameter object} handler 
      */
-    addGetTwitterConceptHandler(handler) {
-        this.actionHandlers.getTwitterConcept = handler;
+    addGetAttractionHandler(handler) {
+        this.actionHandlers.getAttraction = handler;
     }
 
     /**
-     * Set the handler for GetTwitterKeyword actions
+     * Set the handler for SetFeature actions
      * @param {The handler function to be called in response to the action request, which takes a parameter object} handler 
      */
-    addGetTwitterKeywordHandler(handler) {
-        this.actionHandlers.getTwitterKeyword = handler;
+    addSetFeatureHandler(handler) {
+        this.actionHandlers.setFeature = handler;
     }
 
 }
