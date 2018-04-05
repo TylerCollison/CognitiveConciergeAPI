@@ -92,7 +92,6 @@ const database = Database.GetInstance();
 var session = require("express-session"),
     bodyParser = require("body-parser");
 
-<<<<<<< HEAD
 // enable cors
 var cors = require('cors')
 
@@ -115,8 +114,6 @@ var twitterClient = new Twitter({
 });
 
 
-=======
->>>>>>> refs/remotes/origin/master
 /**
     "Request" : {
         "session_id" : ""
@@ -728,7 +725,7 @@ var authenticate = expressJwt({
 
 //Routes
 
-  express.post('/auth/twitter/reverse', function(req, res) {
+  express.post('/api/auth/twitter/reverse', function(req, res) {
 	  console.log("Calling twitter reverse")
     request.post({
       url: 'https://api.twitter.com/oauth/request_token',
@@ -748,7 +745,7 @@ var authenticate = expressJwt({
     });
 });
 
-  express.post('/auth/twitter', (req, res, next) => {
+  express.post('/api/auth/twitter', (req, res, next) => {
 	  console.log("Calling auth twitter")
     request.post({
       url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
