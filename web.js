@@ -6,7 +6,7 @@ const bp = require("body-parser");
 const ChatBot = require("./ChatBot/WatsonConversation");
 const TextAnalyzer = require("./Analysis/WatsonTextAnalyzer");
 const Database = require("./Database/database");
-const LocationExplorer = require("./KnowledgeSystem/ContinentLocationExplorer");
+const LocationExplorer = require("./KnowledgeSystem/DynamoContinentExplorer");
 const FB = require('fb');
 const request = require('request');
 var fb = new FB.Facebook();
@@ -17,6 +17,9 @@ express.use(bp.json({type: 'application/json'}));
 
 //Setup HTTP server
 var server = http.createServer(express);
+
+//Get the database singleton
+const database = Database.GetInstance();
 
 //Create a new chatbot and add action handlers
 const chatbot = new ChatBot();
@@ -49,44 +52,123 @@ function getSessionFeature(sessionId, featureName, cb) {
 }
 
 //Add actions handlers to the chatbot
-chatbot.addGetChatConceptHandler(function(sessionId, cb) {
-    getSessionFeature(sessionId, "ChatConcepts", cb);
+chatbot.addGetConceptHandler(function(sessionId, cb, parameters) {
+    getSessionFeature(sessionId, parameters.source + "Concepts", cb);
 });
 
-chatbot.addGetChatEntityHandler(function(sessionId, cb) {
-    getSessionFeature(sessionId, "ChatEntities", cb);
+chatbot.addGetEntityHandler(function(sessionId, cb, parameters) {
+    getSessionFeature(sessionId, parameters.source + "Entities", cb);
 });
 
-chatbot.addGetChatKeywordHandler(function(sessionId, cb) {
-    getSessionFeature(sessionId, "ChatKeywords", cb);
+chatbot.addGetKeywordHandler(function(sessionId, cb, parameters) {
+    getSessionFeature(sessionId, parameters.source + "Keywords", cb);
 });
 
-chatbot.addGetFacebookConceptHandler(function(sessionId, cb) {
-    getSessionFeature(sessionId, "FacebookConcepts", cb);
+chatbot.addGetPointOfInterestHandler(function(sessionId, cb, parameters) {
+    var explorer = new LocationExplorer(sessionId);
+    explorer.SearchPointsOfInterest(function(error, data) {
+        if (error) {
+            console.log(error);
+            cb(null);
+        } else {
+            var continentResults = data[parameters.continent];
+            if (continentResults && continentResults.match_count > 0) {
+                var index = Math.floor(Math.random() * continentResults.match_count);
+                cb(continentResults.matches[index]);
+            } else {
+                cb(null);
+            }
+        }
+    });
 });
 
-chatbot.addGetFacebookEntityHandler(function(sessionId, cb) {
-    getSessionFeature(sessionId, "FacebookEntities", cb);
+chatbot.addGetActivityHandler(function(sessionId, cb, parameters) {
+    var explorer = new LocationExplorer(sessionId);
+    explorer.SearchActivities(function(error, data) {
+        if (error) {
+            console.log(error);
+            cb(null);
+        } else {
+            var continentResults = data[parameters.continent];
+            if (continentResults && continentResults.match_count > 0) {
+                var index = Math.floor(Math.random() * continentResults.match_count);
+                cb(continentResults.matches[index]);
+            } else {
+                cb(null);
+            }
+        }
+    });
 });
 
-chatbot.addGetFacebookKeywordHandler(function(sessionId, cb) {
-    getSessionFeature(sessionId, "FacebookKeywords", cb);
+chatbot.addGetMediaHandler(function(sessionId, cb, parameters) {
+    var explorer = new LocationExplorer(sessionId);
+    explorer.SearchMedia(function(error, data) {
+        if (error) {
+            console.log(error);
+            cb(null);
+        } else {
+            var continentResults = data[parameters.continent];
+            if (continentResults && continentResults.match_count > 0) {
+                var index = Math.floor(Math.random() * continentResults.match_count);
+                cb(continentResults.matches[index]);
+            } else {
+                cb(null);
+            }
+        }
+    });
 });
 
-chatbot.addGetTwitterConceptHandler(function(sessionId, cb) {
-    getSessionFeature(sessionId, "TwitterConcepts", cb);
+chatbot.addGetVolunteerOrgHandler(function(sessionId, cb, parameters) {
+    var explorer = new LocationExplorer(sessionId);
+    explorer.SearchVolunteerOrganizations(function(error, data) {
+        if (error) {
+            console.log(error);
+            cb(null);
+        } else {
+            var continentResults = data[parameters.continent];
+            if (continentResults && continentResults.match_count > 0) {
+                var index = Math.floor(Math.random() * continentResults.match_count);
+                cb(continentResults.matches[index]);
+            } else {
+                cb(null);
+            }
+        }
+    });
 });
 
-chatbot.addGetTwitterEntityHandler(function(sessionId, cb) {
-    getSessionFeature(sessionId, "TwitterEntities", cb);
+chatbot.addGetAttractionHandler(function(sessionId, cb, parameters) {
+    var explorer = new LocationExplorer(sessionId);
+    explorer.SearchTouristAttractions(function(error, data) {
+        if (error) {
+            console.log(error);
+            cb(null);
+        } else {
+            var continentResults = data[parameters.continent];
+            if (continentResults && continentResults.match_count > 0) {
+                var index = Math.floor(Math.random() * continentResults.match_count);
+                cb(continentResults.matches[index]);
+            } else {
+                cb(null);
+            }
+        }
+    });
 });
 
-chatbot.addGetTwitterKeywordHandler(function(sessionId, cb) {
-    getSessionFeature(sessionId, "TwitterKeywords", cb);
+chatbot.addSetFeatureHandler(function(sessionId, cb, parameters) {
+    database.tables.sessions.AddChatConcepts(sessionId, [parameters.feature], function (error) {
+        //Log any errors
+        if (error) {
+            console.log(error);
+        }
+    });
+    database.tables.sessions.AddChatKeywords(sessionId, [parameters.feature], function(error) {
+        //Log any errors
+        if (error) {
+            console.log(error);
+        }
+    });
+    cb(null);
 });
-
-//Get the database singleton
-const database = Database.GetInstance();
 
 //Initialize passport
 var session = require("express-session"),
@@ -192,18 +274,37 @@ express.post('/match', (req, res) => {
 
     //Determine whether the request is malformed
     if (typeof(sessionId) != 'undefined') {
-        //Search the database for the supplied session information
-        database.tables.sessions.GetItem(sessionId, function(err, data) {
-            //Determine whether there was an internal error
-            if (err || typeof(data) === 'undefined') {
-                if (err) {
-                    console.log(err);
-                }
+        var explorer = new LocationExplorer(sessionId);
+        explorer.SearchDestinations(function (error, data) {
+            if (error) {
                 res.send(JSON.stringify({
-                    match_count: 0, 
-                    matches: []
+                    africa: {
+                        match_count: 0,
+                        matches: []
+                    },
+                    europe: {
+                        match_count: 0,
+                        matches: []
+                    },
+                    asia: {
+                        match_count: 0,
+                        matches: []
+                    }, 
+                    north_america: {
+                        match_count: 0,
+                        matches: []
+                    }, 
+                    south_america: {
+                        match_count: 0,
+                        matches: []
+                    }, 
+                    australia: {
+                        match_count: 0,
+                        matches: []
+                    }
                 }));
             } else {
+<<<<<<< HEAD
                 var explorer = new LocationExplorer("2e9f9764-ad0d-4f1e-aeab-3382092f2d44", "dd43db89-6a87-462f-8ab9-69c288e96d51", "656dc01d-2559-4d36-90f8-6df0b17d8ff4", "yX1lHWcfkFRx");
                 if (data.ChatConcepts) {
                     //TODO: remove the Concept Set at the database level
@@ -252,8 +353,11 @@ express.post('/match', (req, res) => {
                         res.send(JSON.stringify(data));
                     }
                 });
+=======
+                res.send(JSON.stringify(data));
+>>>>>>> refs/remotes/origin/master
             }
-        });
+        })
     } else {
         //Throw an error if the request was malformed
         console.log("Malformed request");
