@@ -6,7 +6,7 @@ const bp = require("body-parser");
 const ChatBot = require("./ChatBot/WatsonConversation");
 const TextAnalyzer = require("./Analysis/WatsonTextAnalyzer");
 const Database = require("./Database/database");
-const LocationExplorer = require("./KnowledgeSystem/LocationExplorer");
+const LocationExplorer = require("./KnowledgeSystem/ContinentLocationExplorer");
 const FB = require('fb');
 const request = require('request');
 var fb = new FB.Facebook();
@@ -18,8 +18,72 @@ express.use(bp.json({type: 'application/json'}));
 //Setup HTTP server
 var server = http.createServer(express);
 
-//Create a new chatbot
+//Create a new chatbot and add action handlers
 const chatbot = new ChatBot();
+
+/**
+ * Gets a random feature of a specified type from the specified session
+ * @param {The id of the session to which the feature belongs} sessionId
+ * @param {The type of the feature to retrieve} featureName
+ * @param {Callback called upon completion of retrieval, which takes the result as a parameter} cb 
+ */
+function getSessionFeature(sessionId, featureName, cb) {
+    //Search the database for the supplied session information
+    database.tables.sessions.GetItem(sessionId, function(err, data) {
+        //Determine whether there was an internal error
+        if (err || typeof(data) === 'undefined') {
+            if (err) {
+                console.log(err);
+            }
+            cb(null);
+        } else {
+            //Determine whether there are any concepts associated with the session
+            if (data[featureName] && data[featureName].values.length > 0) {
+                var index = Math.floor(Math.random() * data[featureName].values.length);
+                cb(data[featureName].values[index]);
+            } else {
+                cb(null);
+            }
+        }
+    });
+}
+
+//Add actions handlers to the chatbot
+chatbot.addGetChatConceptHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "ChatConcepts", cb);
+});
+
+chatbot.addGetChatEntityHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "ChatEntities", cb);
+});
+
+chatbot.addGetChatKeywordHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "ChatKeywords", cb);
+});
+
+chatbot.addGetFacebookConceptHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "FacebookConcepts", cb);
+});
+
+chatbot.addGetFacebookEntityHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "FacebookEntities", cb);
+});
+
+chatbot.addGetFacebookKeywordHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "FacebookKeywords", cb);
+});
+
+chatbot.addGetTwitterConceptHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "TwitterConcepts", cb);
+});
+
+chatbot.addGetTwitterEntityHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "TwitterEntities", cb);
+});
+
+chatbot.addGetTwitterKeywordHandler(function(sessionId, cb) {
+    getSessionFeature(sessionId, "TwitterKeywords", cb);
+});
 
 //Get the database singleton
 const database = Database.GetInstance();
@@ -28,6 +92,7 @@ const database = Database.GetInstance();
 var session = require("express-session"),
     bodyParser = require("body-parser");
 
+<<<<<<< HEAD
 // enable cors
 var cors = require('cors')
 
@@ -50,21 +115,80 @@ var twitterClient = new Twitter({
 });
 
 
+=======
+>>>>>>> refs/remotes/origin/master
 /**
     "Request" : {
         "session_id" : ""
     }
 
     "Response" : {
-        "match_count": COUNT,
-        "matches" : [
-            {
-                "id" : "LOCATION_ID",
-                "location" : "LOCATION_STRING",
-                "description" : "LOCATION_DESCRIPTION", 
-                "confidence" : "CONFIDENCE_VALUE"
-            }
-        ]
+        "africa" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
+        "europe" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
+        "asia" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
+        "north_america" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
+        "south_america" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
+        "australia" : {
+            "match_count": COUNT,
+            matches: [
+                {
+                    "id" : "LOCATION_ID",
+                    "location" : "LOCATION_STRING",
+                    "description" : "LOCATION_DESCRIPTION", 
+                    "confidence" : "CONFIDENCE_VALUE"
+                }
+            ]
+        }
     }
  */
 express.post('/match', (req, res) => {
@@ -84,8 +208,7 @@ express.post('/match', (req, res) => {
                     matches: []
                 }));
             } else {
-                var explorer = new LocationExplorer(); //Create a new location explorer
-                //Determine whether there are any concepts associated with the session
+                var explorer = new LocationExplorer("2e9f9764-ad0d-4f1e-aeab-3382092f2d44", "dd43db89-6a87-462f-8ab9-69c288e96d51", "656dc01d-2559-4d36-90f8-6df0b17d8ff4", "yX1lHWcfkFRx");
                 if (data.ChatConcepts) {
                     //TODO: remove the Concept Set at the database level
                     explorer.AddSearchConcepts(data.ChatConcepts.values); //Add the concepts 
@@ -130,10 +253,7 @@ express.post('/match', (req, res) => {
                         console.log(err);
                     } else {
                         //Respond with the matching location data
-                        res.send(JSON.stringify({
-                            match_count: data.length, 
-                            matches: data
-                        }));
+                        res.send(JSON.stringify(data));
                     }
                 });
             }
@@ -190,10 +310,10 @@ express.post('/conversation', (req, res) => {
                             console.log(err);
                         } else {
                             //Store the concepts that were found
-                            var concepts = conceptExtractor.GetConcepts();
-                            var keywords = keywordExtractor.GetKeywords();
+                            var concepts = conceptExtractor.GetConcepts(0.85);
+                            var keywords = keywordExtractor.GetKeywords(0.50);
                             var entities = entityExtractor.GetEntities();
-                            //Determine whether any concepts were found
+                            //Determine whether any concepts were found 
                             if (concepts.length > 0) {
                                 console.log("Concepts Detected: " + concepts);
                                 //Associate these concepts with this user session
@@ -347,8 +467,8 @@ function GetConceptsFromPosts(postsArray, sessionID) {
             console.log(err);
         } else {
             //Store the concepts that were found
-            var concepts = conceptExtractor.GetConcepts();
-            var keywords = keywordExtractor.GetKeywords();
+            var concepts = conceptExtractor.GetConcepts(0.85);
+            var keywords = keywordExtractor.GetKeywords(0.50);
             var entities = entityExtractor.GetEntities();
             //Determine whether any concepts were found
             if (concepts.length > 0) {
