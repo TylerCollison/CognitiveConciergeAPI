@@ -304,7 +304,6 @@ express.post('/match', (req, res) => {
                     }
                 }));
             } else {
-<<<<<<< HEAD
                 var explorer = new LocationExplorer("2e9f9764-ad0d-4f1e-aeab-3382092f2d44", "dd43db89-6a87-462f-8ab9-69c288e96d51", "656dc01d-2559-4d36-90f8-6df0b17d8ff4", "yX1lHWcfkFRx");
                 if (data.ChatConcepts) {
                     //TODO: remove the Concept Set at the database level
@@ -353,9 +352,7 @@ express.post('/match', (req, res) => {
                         res.send(JSON.stringify(data));
                     }
                 });
-=======
                 res.send(JSON.stringify(data));
->>>>>>> refs/remotes/origin/master
             }
         })
     } else {
