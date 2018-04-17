@@ -464,10 +464,10 @@ express.post('/facebookresults', function (req, res) {
 });
 
 //Get the correct port from the environment variables
-//var port = process.env.PORT;
+var port = process.env.PORT;
 
 //Uncomment to test on localhost, port 8000
-var port = 8000;
+//var port = 8000;
 
 //Start the server
 server.listen(port, () => {
