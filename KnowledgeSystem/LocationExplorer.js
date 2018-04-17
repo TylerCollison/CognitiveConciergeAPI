@@ -66,6 +66,29 @@ function ExtractDestinationResults(response) {
 }
 
 /**
+ * Extracts properly formatted location results from the Watson Discovery response
+ * @param {Location query response from Watson Discovery} response 
+ * 
+ * @return {An array of location objects}
+ */
+function ExtractDestinationResultsWithoutAgg(response) {
+    var locations = [];
+    //Process each document result
+    var results = response.results;
+    for (var i = 0; i < results.length; i++) {
+        var result = results[i]; //Store the result
+        //Process each Watson Discovery result
+        locations.push({
+            id: cryptoEngine.hashPassword(result.id, ""), //Generate a unique ID
+            location: ((result.extracted_metadata != null && result.extracted_metadata.title != null) ? result.extracted_metadata.title.replace("- Wikipedia", "") : result.id), 
+            description: result.text,
+            confidence: result.result_metadata.score //TODO: replace this with meaningful confidence
+        });
+    }
+    return locations;
+}
+
+/**
  * Extracts properly formatted entity results from the Watson Discovery response
  * @param {Aggregate entity query response from Watson Discovery} response 
  * 
@@ -167,21 +190,15 @@ class LocationExplorer {
     SearchDestinations(callback) {
         var queryString = GenerateQueryString(this.queryMap); //Generate the appropriate query string
         //Query the knowledge base for aggregation
-        this.client.Query(queryString, 0, function(err, data) {
+        this.client.Query(queryString, 10, function(err, data) {
             if (err) {
                 callback(err, null);
             } else {
                 //Add DBPedia data to the results
-                var results = ExtractDestinationResults(data);
-                AddDBPediaData(results, function(error, locations) {
-                    if (error) {
-                        callback(error, null);
-                    } else {
-                        callback(error, locations);
-                    }
-                });
+                var results = ExtractDestinationResultsWithoutAgg(data);
+                callback(err, results);
             }
-        }, null, FILTER, DEST_AGGREGATOR);
+        }, null, FILTER, null);
     }
 
     /**
