@@ -823,7 +823,6 @@ var authenticate = expressJwt({
 });
 
 //Routes
-
   express.post('/api/auth/twitter/reverse', function(req, res) {
 	  console.log("Calling twitter reverse")
     request.post({
