@@ -473,7 +473,7 @@ var port = 8000;
 
 //Start the server
 server.listen(port, () => {
-    console.log("Access on Android Server bound on port: " + port.toString());
+    console.log("Server bound on port: " + port.toString());
 });
 
 function GetConceptsFromPosts(postsArray, sessionID) {
