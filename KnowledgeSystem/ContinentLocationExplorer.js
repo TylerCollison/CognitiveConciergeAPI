@@ -7,8 +7,8 @@ class ContinentLocationExplorer {
     constructor() {
         this.northAmericaExplorer = new LocationExplorer("1ca902f0-21c0-4cbb-94ce-440e067106f5", "c129503a-4aa6-4c3a-b907-0821c9ac2281", "a2399677-a1bf-4121-b358-ddff19d8c7a8", "yKCnUBslf5w1");
         this.southAmericaExplorer = new LocationExplorer("3e6bad8d-a45a-4cd3-ab59-b3a31c505f06", "b41bd483-0b78-4f28-a845-9540d018657c", "6d820b63-0997-468e-95f9-3563eabd9068", "vB644KfixGIW");
-        this.africaExplorer = new LocationExplorer("3e6bad8d-a45a-4cd3-ab59-b3a31c505f06", "0ca1c53e-8e76-435b-add8-b7d959fa6f15", "6d820b63-0997-468e-95f9-3563eabd9068", "vB644KfixGIW");
-        this.europeExplorer = new LocationExplorer("b117f22c-0663-45f6-997a-10ddba6dedef", "78e87568-b152-4a1d-ab37-c93490ae5e3a", "bd6f1f83-0aa2-4ab9-978d-1d6bc70b564c", "wHE0e33Mx5jX");
+        this.africaExplorer = new LocationExplorer("3e6bad8d-a45a-4cd3-ab59-b3a31c505f06", "a10aa81e-60b5-48d7-afb9-8404fc9d52e9", "6d820b63-0997-468e-95f9-3563eabd9068", "vB644KfixGIW");
+        this.europeExplorer = new LocationExplorer("b117f22c-0663-45f6-997a-10ddba6dedef", "6b3c0184-35d7-49b3-8bb4-cad58752082f", "bd6f1f83-0aa2-4ab9-978d-1d6bc70b564c", "wHE0e33Mx5jX");
         this.australiaExplorer = new LocationExplorer("f5af6703-f635-4884-bb77-2ad4c7fb7ded", "42be1e1b-2c0e-4fde-9170-95e8a771b92c", "4424b627-7156-481a-8151-1543bdf8e8ca", "P5hISByiqXj0");
         this.asiaExplorer = new LocationExplorer("3ff33e66-f3f5-44e5-9b93-96f80f2c1751", "82bcf5ac-c795-419d-a376-6ed9a1660e47", "1748eaa3-b3bd-4abc-87fe-ec5a23b1896c", "aw2EeMeQVOpn");
         // environmentId, collectionId, username, password
